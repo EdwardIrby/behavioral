@@ -1,0 +1,54 @@
+{
+  "engines": {
+    "node": ">= 14.2.0",
+    "npm": ">= 6.14"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  },
+  "types": "src/index.d.ts",
+  "main": "src/index.js",
+  "module": "src/index.js",
+  "scripts": {
+    "lint": "eslint . --quiet --fix --ext .js",
+    "lint:ci": "eslint .  --ext .js",
+    "start": "node -r esm tic-tac-toe",
+    "test": "ava",
+    "test:ci": "c8 --check-coverage --statements 90 --branches 90 --functions 90 --lines 90 --exclude client/**/*.spec.js npm test",
+    "test:watch": "npm test -- --watch --verbose"
+  },
+  "husky": {
+    "hooks": {
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
+      "pre-commit": "npm run lint && npm run test:ci && format-package -w"
+    }
+  },
+  "ava": {
+    "extensions": [
+      "js"
+    ],
+    "files": [
+      "**/*.spec.js"
+    ],
+    "require": [
+      "esm"
+    ]
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^11.0.0",
+    "@commitlint/config-conventional": "^11.0.0",
+    "autoprefixer": "^10.0.1",
+    "ava": "^3.13.0",
+    "babel-eslint": "^10.1.0",
+    "c8": "^7.3.5",
+    "cz-conventional-changelog": "^3.3.0",
+    "eslint": "^7.12.1",
+    "eslint-config-prettier": "^6.15.0",
+    "eslint-plugin-compat": "^3.8.0",
+    "esm": "^3.2.25",
+    "format-package": "^6.1.0",
+    "husky": "^4.3.0"
+  }
+}
