@@ -1,3 +1,4 @@
+
 export function stream(initial){
   const listeners = []
   function createdStream(value) {

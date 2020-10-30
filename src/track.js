@@ -2,7 +2,7 @@ import {bProgram} from './bProgram'
 import {stream} from './stream.js'
 import {streamEvents} from './constants.js'
 
-
+/** @type {import('./typings/index').loop} */
 export const loop = (gen, loopCallback = () => true) =>
   function* ()  {
     while (loopCallback()) {
@@ -10,6 +10,7 @@ export const loop = (gen, loopCallback = () => true) =>
     }
   }
 
+/** @type {import('./typings/index').strand} */
 export const strand = (...ruleList) =>
   function* ()  {
     for (const {assert, ...rule} of ruleList) {
@@ -18,6 +19,7 @@ export const strand = (...ruleList) =>
     }
   }
 
+/** @type {import('./typings/index').track} */
 export const track = (
   strands,
   {strategy, track} = {},

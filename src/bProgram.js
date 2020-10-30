@@ -1,5 +1,7 @@
 import {selectionStrategies, streamEvents} from './constants.js'
-/** @description a function that checks whether a parameter callback function returns true or that the parameter evenName equals the request event name */
+/** @description a function that checks whether a parameter callback function returns true or that the parameter evenName equals the request event name 
+ *  @type {import('./typings/index').requestInParameter} 
+*/
 export const requestInParameter = request => parameter =>{
   const {
     strandName,
