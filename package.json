@@ -1,0 +1,62 @@
+{
+  "name": "behavioral",
+  "version": "1.0.0",
+  "engines": {
+    "node": ">= 14.2.0",
+    "npm": ">= 6.14"
+  },
+  "main": "index.ts",
+  "module": "index.ts",
+  "files": [
+    "src/",
+    "!src/test"
+  ],
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  },
+  "scripts": {
+    "lint": "eslint . --quiet --fix --ext .ts",
+    "lint:ci": "eslint .  --ext .ts",
+    "lint:fix": "npm run lint -- --fix",
+    "start": " ts-node tic-tac-toe",
+    "test": "ava",
+    "test:ci": "c8 --check-coverage --statements 90 --branches 90 --functions 90 --lines 90 --exclude client/**/*.spec.js npm test",
+    "test:watch": "npm test -- --watch --verbose"
+  },
+  "husky": {
+    "hooks": {
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
+      "pre-commit": "npm run lint && npm run test:ci && format-package -w"
+    }
+  },
+  "ava": {
+    "extensions": [
+      "ts"
+    ],
+    "files": [
+      "**/*.spec.ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ]
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^11.0.0",
+    "@commitlint/config-conventional": "^11.0.0",
+    "@typescript-eslint/parser": "^4.6.0",
+    "@typescript-eslint/eslint-plugin": "^4.6.0",
+    "autoprefixer": "^10.0.1",
+    "ava": "^3.13.0",
+    "c8": "^7.3.5",
+    "cz-conventional-changelog": "^3.3.0",
+    "eslint": "^7.12.1",
+    "eslint-config-prettier": "^6.15.0",
+    "eslint-plugin-compat": "^3.8.0",
+    "format-package": "^6.1.0",
+    "husky": "^4.3.0",
+    "ts-node": "^9.0.0",
+    "typescript": "^4.0.5"
+  }
+}

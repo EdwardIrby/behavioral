@@ -1,0 +1,19 @@
+# dependencies
+**/node_modules
+
+# testing
+**/coverage
+**/.nyc_output
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Conventional directory for build outputs
+**/dist/
+
+# Directory created by dartdoc
+doc/api/
+
+**/.cache/
