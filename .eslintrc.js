@@ -5,12 +5,13 @@ module.exports = {
     sourceType: 'module',
     allowImportExportEverywhere: true,
   },
+  parser: '@typescript-eslint/parser',
   env: {
     browser: true,
     node: true,
     es6: true,
   },
-  extends: ['eslint:recommended', 'plugin:compat/recommended'],
+  extends: ['eslint:recommended', 'plugin:compat/recommended', 'plugin:@typescript-eslint/recommended'],
   rules: {
     strict: 0,
     semi: ['error', 'never'],

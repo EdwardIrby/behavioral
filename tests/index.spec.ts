@@ -6,8 +6,8 @@ import {
   selectionStrategies,
   loop,
   strand,
-} from '../index'
-const actual = []
+} from '..'
+const actual: string[] = []
 const expected = [
   'Add hot',
   'Add cold',
@@ -57,7 +57,7 @@ const strands = {
 }
 
 test('plait(): priority queue', t => {
-  const streamLog = []
+  const streamLog: unknown[] = []
   const {trigger, feedback, log} = track(strands)
   feedback.subscribe(msg => {
     msg.eventName === 'hot' && addHot()
@@ -77,7 +77,7 @@ test('plait(): priority queue', t => {
   t.snapshot(streamLog, 'priority log snapshot')
 })
 test('plait(): randomized priority queue', t => {
-  const streamLog = []
+  const streamLog: unknown[] = []
   actual.length = 0
   const {trigger, feedback, log} = track(strands, {
     strategy: selectionStrategies.random,
@@ -100,7 +100,7 @@ test('plait(): randomized priority queue', t => {
   t.snapshot(streamLog, 'randomized priority log snapshot')
 })
 test('plait(): chaos selection', t => {
-  const streamLog = []
+  const streamLog: unknown[]  = []
   actual.length = 0
   const {trigger, feedback, log} = track(strands, {
     strategy: selectionStrategies.chaos,

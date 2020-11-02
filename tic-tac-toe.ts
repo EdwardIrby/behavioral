@@ -5,7 +5,7 @@ import {
   loop,
   strand,
   selectionStrategies,
-} from './src'
+} from './index'
 
 const winConditions = [
   //rows
@@ -22,7 +22,7 @@ const winConditions = [
 ]
 
 const squares = [0, 1, 2, 3, 4, 5, 6, 7, 8]
-const squaresTaken = squares.reduce((acc, square) => {
+const squaresTaken = squares.reduce((acc: Record<string, unknown>, square) => {
   acc[`(${square}) taken`] = strand(
     {
       waitFor: [{callback: ({payload}) => square === payload}], // [{ eventName: string, callback?: function | undefined, payload?: Transferable | undefined}]
@@ -35,14 +35,14 @@ const squaresTaken = squares.reduce((acc, square) => {
   return acc
 }, {})
 
-const playerWins = player =>
-  winConditions.reduce((acc, win) => {
+const playerWins = (player: string) =>
+  winConditions.reduce((acc: Record<string, unknown>, win) => {
     acc[`${player}Wins (${win})`] = strand(
       {
         waitFor: [
           {
             callback: ({eventName, payload}) =>
-              eventName === player && win.includes(payload),
+              eventName === player && win.includes(payload as number),
           },
         ],
       },
@@ -50,7 +50,7 @@ const playerWins = player =>
         waitFor: [
           {
             callback: ({eventName, payload}) =>
-              eventName === player && win.includes(payload),
+              eventName === player && win.includes(payload as number),
           },
         ],
       },
@@ -58,7 +58,7 @@ const playerWins = player =>
         waitFor: [
           {
             callback: ({eventName, payload}) =>
-              eventName === player && win.includes(payload),
+              eventName === player && win.includes(payload as number),
           },
         ],
       },
@@ -76,7 +76,7 @@ const enforceTurns = loop(
   ),
 )
 
-const playerMove = player =>
+const playerMove = (player: string) =>
   loop(
     strand({
       request: squares.map(move => ({eventName: player, payload: move})),

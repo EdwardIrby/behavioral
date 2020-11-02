@@ -1,8 +1,18 @@
-import {selectionStrategies, streamEvents} from './constants.js'
-/** @description a function that checks whether a parameter callback function returns true or that the parameter evenName equals the request event name 
- *  @type {import('./typings/index').requestInParameter} 
-*/
-export const requestInParameter = request => parameter =>{
+import {selectionStrategies, streamEvents, baseDynamics} from './constants.js'
+import {
+  ValueOf,
+  BlockedBid,
+  CandidateBid,
+  MappedCandidateBid,
+  LastEvent,
+  Bid,
+  IdiomValue,
+  Strategy,
+  SelectionStrategies,
+  CreatedStream,
+} from './types'
+/** @description a function that checks whether a parameter callback function returns true or that the parameter evenName equals the request event name */
+export const requestInParameter = (request: MappedCandidateBid) => (parameter: IdiomValue) =>{
   const {
     strandName,
     priority,
@@ -22,9 +32,9 @@ export const requestInParameter = request => parameter =>{
 }
   
 
-const candidatesList = pending => pending
-  .filter(({request}) => request)
-  .reduce(
+const candidatesList = (pending: Bid[]) => {
+  const candidates = pending.filter(({request}) => request) as CandidateBid[]
+  return candidates.reduce<MappedCandidateBid[]>(
     (acc, {request, ...rest}) => acc.concat(
       // Flatten bids' request arrays
       request.map(
@@ -33,17 +43,18 @@ const candidatesList = pending => pending
     ),
     [],
   )
-const blockedList = pending => pending
-  .filter(({block}) => block)
-  .flatMap(({block}) => block)
-
-const shuffle = array => {
+}
+const blockedList = (pending: Bid[]) => {
+  const blocked = pending.filter(({block}) => block) as BlockedBid[]
+  return blocked.flatMap(({block}) => block)
+}
+const shuffle = (array: unknown[]) => {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
     ;[array[i], array[j]] = [array[j], array[i]]
   }
 }
-const randomizedPriority = (candidateEvents, blockedEvents) => {
+const randomizedPriority = (candidateEvents: MappedCandidateBid[], blockedEvents: IdiomValue[]) => {
   const filteredEvents = candidateEvents.filter(
     request => !blockedEvents.some(requestInParameter(request)),
   )
@@ -52,8 +63,8 @@ const randomizedPriority = (candidateEvents, blockedEvents) => {
     ({priority: priorityA}, {priority: priorityB}) => priorityA - priorityB,
   )[0]
 }
-const chaosStrategy = (candidateEvents, blockedEvents) => {
-  const randomArrayElement = arr =>
+const chaosStrategy = (candidateEvents: MappedCandidateBid[], blockedEvents: IdiomValue[]) => {
+  const randomArrayElement = (arr: MappedCandidateBid[]) =>
     arr[Math.floor(Math.random() * Math.floor(arr.length))]
   return randomArrayElement(
     candidateEvents.filter(
@@ -61,7 +72,7 @@ const chaosStrategy = (candidateEvents, blockedEvents) => {
     ),
   )
 }
-const priorityStrategy = (candidateEvents, blockedEvents) => {
+const priorityStrategy = (candidateEvents: MappedCandidateBid[], blockedEvents: IdiomValue[]) => {
   return candidateEvents
     .filter(request => !blockedEvents.some(requestInParameter(request)))
     .sort(
@@ -69,25 +80,25 @@ const priorityStrategy = (candidateEvents, blockedEvents) => {
         priorityA - priorityB,
     )[0]
 }
-const strategies = {
+const strategies: Record<ValueOf<typeof selectionStrategies>, Strategy> = {
   [selectionStrategies.random]: randomizedPriority,
   [selectionStrategies.priority]: priorityStrategy,
   [selectionStrategies.chaos]: chaosStrategy,
 }
 
 export const bProgram = (
-  strategy = selectionStrategies.priority,
-  send,
+  strategy: SelectionStrategies = selectionStrategies.priority,
+  send: CreatedStream,
 ) => {
   const eventSelectionStrategy  =
     typeof strategy === 'string'
-      ? strategies[strategy]
-      : strategy
-  const pending = new Set()
-  const running = new Set()
-  let lastEvent = {}
-  const streamAssertion = assert => {
-    const {
+      ? strategies[strategy as ValueOf<typeof selectionStrategies>]
+      : strategy as Strategy
+  const pending = new Set<Bid>()
+  const running = new Set<Bid>()
+  let lastEvent = {} as MappedCandidateBid
+  const streamAssertion = (assert: (lastEvent: LastEvent) => boolean)  => {
+    const   {
       strandName,
       priority,
       eventName,
@@ -146,7 +157,7 @@ export const bProgram = (
     })
     run()
   }
-  function stateChart(candidates, blocked) {
+  function stateChart(candidates: MappedCandidateBid[], blocked: IdiomValue[]) {
     const strands = [...pending]
       .filter(({strandName}) => strandName)
       .map(({strandName}) => strandName)
@@ -172,6 +183,8 @@ export const bProgram = (
   }
   const trigger = ({
     eventName, payload, baseDynamic,
+  }: {
+    eventName: string, payload?: unknown, baseDynamic: ValueOf<typeof baseDynamics>
   }) => {
     const logicStrand = function* () {
       yield {
