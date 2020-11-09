@@ -1,4 +1,4 @@
-import {streamEvents, selectionStrategies} from './constants'
+import {streamEvents, selectionStrategies, baseDynamics} from './constants'
 export type ValueOf<T> = T[keyof T]
 
 export interface LastEvent {
@@ -56,3 +56,8 @@ export interface CreatedStream {
   (value: ListenerMessage): void
   subscribe: (listener: Listener) => CreatedStream
 }
+export type Trigger = ({eventName, payload, baseDynamic}: {
+  eventName: string;
+  payload?: unknown;
+  baseDynamic: ValueOf<typeof baseDynamics>;
+}) => void
