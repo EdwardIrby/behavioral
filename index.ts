@@ -5,4 +5,4 @@ export {
 } from './src/constants'
 export {requestInParameter} from './src/bProgram'
 export {track, strand, loop} from './src/track'
-export {Trigger} from './src/types'
+export {Trigger, CreatedStream, Add} from './src/types'

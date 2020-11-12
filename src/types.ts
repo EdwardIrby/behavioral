@@ -61,3 +61,5 @@ export type Trigger = ({eventName, payload, baseDynamic}: {
   payload?: unknown;
   baseDynamic: ValueOf<typeof baseDynamics>;
 }) => void
+
+export type Add = (logicStands: Record<string, RulesFunc>) => void
