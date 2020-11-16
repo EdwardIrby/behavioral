@@ -1,5 +1,5 @@
 import {streamEvents, selectionStrategies, baseDynamics} from './constants'
-export type ValueOf<T> = T[keyof T]
+export {ValueOf} from '@assembl-dev/utils' 
 
 export interface LastEvent {
   strandName: string;
