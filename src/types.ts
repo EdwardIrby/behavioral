@@ -1,4 +1,5 @@
 import {streamEvents, selectionStrategies, baseDynamics} from './constants'
+
 export type ValueOf<T> = T[keyof T]
 
 export interface LastEvent {
