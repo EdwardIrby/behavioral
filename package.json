@@ -48,9 +48,6 @@
     ]
   },
   "types": "dist/index.d.ts",
-  "dependencies": {
-    "@assembl-dev/utils": "^1.0.0"
-  },
   "devDependencies": {
     "@commitlint/cli": "^11.0.0",
     "@commitlint/config-conventional": "^11.0.0",
