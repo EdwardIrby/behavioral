@@ -5,7 +5,7 @@ import {
   loop,
   strand,
   selectionStrategies,
-} from './index'
+} from './src/index'
 
 const winConditions = [
   //rows
