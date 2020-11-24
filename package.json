@@ -1,15 +1,15 @@
 {
   "name": "@assembl-dev/behavioral",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "engines": {
     "node": ">= 14.2.0",
     "npm": ">= 6.14"
   },
-  "main": "index.ts",
-  "module": "index.ts",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
   "files": [
-    "src/",
-    "!src/test"
+    "dist/",
+    "src/"
   ],
   "config": {
     "commitizen": {
@@ -20,12 +20,14 @@
     "registry": "https://npm.pkg.github.com/"
   },
   "scripts": {
+    "build": "tsc --project tsconfig.build.json",
     "lint": "eslint . --quiet --fix --ext .ts",
     "lint:ci": "eslint .  --ext .ts",
     "lint:fix": "npm run lint -- --fix",
+    "prepublish": "npm run build",
     "start": " ts-node tic-tac-toe",
     "test": "ava",
-    "test:ci": "c8 --check-coverage --statements 90 --branches 90 --functions 90 --lines 90 --exclude client/**/*.spec.js npm test",
+    "test:ci": "c8 --check-coverage --statements 90 --branches 90 --functions 90 --lines 90 --include src/**/*.ts --exclude src/index.ts npm test",
     "test:watch": "npm test -- --watch --verbose"
   },
   "husky": {
@@ -45,9 +47,7 @@
       "ts-node/register"
     ]
   },
-  "dependencies": {
-    "@assembl-dev/utils": "^1.0.0"
-  },
+  "types": "dist/index.d.ts",
   "devDependencies": {
     "@commitlint/cli": "^11.0.0",
     "@commitlint/config-conventional": "^11.0.0",

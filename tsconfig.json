@@ -1,14 +1,18 @@
 {
+  "include": ["src/**/*"],
   "compilerOptions": {
     "allowJs": true,
     "baseUrl": ".",
+    "declaration": true,
     "downlevelIteration": true,
     "emitDecoratorMetadata": true,
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "lib": ["dom", "es2019"],
-    "module": "commonjs",
     "moduleResolution": "node",
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "preserveConstEnums": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "sourceMap": true,
@@ -16,5 +20,5 @@
     "typeRoots": ["./node_modules/@types"],
     "strict": true
   },
-  "exclude": ["node_modules", "commitlint.config.js", ]
+  "exclude": ["node_modules", "commitlint.config.js", "tic-tac-toe.ts", "test" ]
 }

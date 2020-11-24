@@ -6,7 +6,7 @@ import {
   selectionStrategies,
   loop,
   strand,
-} from '..'
+} from '../src'
 const actual: string[] = []
 const expected = [
   'Add hot',

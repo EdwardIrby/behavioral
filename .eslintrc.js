@@ -12,6 +12,7 @@ module.exports = {
     es6: true,
   },
   extends: ['eslint:recommended', 'plugin:compat/recommended', 'plugin:@typescript-eslint/recommended'],
+  ignorePatterns: ['**/dist/*'],
   rules: {
     strict: 0,
     semi: ['error', 'never'],
