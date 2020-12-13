@@ -32,10 +32,15 @@ export const track = (
     ...(track && {track}),
     ...details,
   }))
-  const feedback = send.subscribe(({streamEvent, ...details}: ListenerMessage) => {
+  const selectedStream = send.subscribe(({streamEvent, ...details}: ListenerMessage) => {
     if (streamEvent !== streamEvents.select) return
-    return {...(track && {track}), streamEvent, ...details}
+    return details
   })
+  const feedback = (actions: Record<string, (msg: {payload: unknown, eventName: string}) => void>) => 
+    selectedStream.subscribe(({eventName, payload}) => {
+      actions[eventName as string] && actions[eventName as string]({payload, eventName: eventName as string})
+    },
+    )
   const add = (logicStands: Record<string, RulesFunc>) => {
     for (const strandName in logicStands)
       running.add({

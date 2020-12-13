@@ -1,4 +1,4 @@
-import {selectionStrategies, streamEvents, baseDynamics} from './constants.js'
+import {selectionStrategies, streamEvents, baseDynamics} from './constants'
 import {
   ValueOf,
   BlockedBid,
