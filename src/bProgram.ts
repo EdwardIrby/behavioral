@@ -88,7 +88,7 @@ const strategies: Record<ValueOf<typeof selectionStrategies>, Strategy> = {
 
 export const bProgram = (
   strategy: SelectionStrategies = selectionStrategies.priority,
-  send: CreatedStream,
+  stream: CreatedStream,
 ) => {
   const eventSelectionStrategy  =
     typeof strategy === 'string'
@@ -105,7 +105,7 @@ export const bProgram = (
       callback,
       payload,
     } = lastEvent
-    send({
+    stream({
       streamEvent: streamEvents.assert,
       eventName: lastEvent.eventName,
       ok: assert({
@@ -137,7 +137,7 @@ export const bProgram = (
     const candidates = candidatesList([...pending])
     const blocked = blockedList([...pending])
     lastEvent = eventSelectionStrategy(candidates, blocked)
-    send(stateChart(candidates, blocked))
+    stream(stateChart(candidates, blocked))
     lastEvent && nextStep()
   }
   function nextStep() {
@@ -150,7 +150,7 @@ export const bProgram = (
       }
     })
     const {eventName, payload} = lastEvent
-    send({
+    stream({
       streamEvent: streamEvents.select,
       eventName,
       payload,
@@ -197,7 +197,7 @@ export const bProgram = (
       priority: 0,
       logicStrand: logicStrand(),
     })
-    send({
+    stream({
       streamEvent: streamEvents.trigger,
       baseDynamic,
       eventName: `Trigger(${eventName})`,

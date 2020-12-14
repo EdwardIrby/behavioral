@@ -1,5 +1,5 @@
 import {bProgram} from './bProgram'
-import {stream} from './stream'
+import {stream as s} from './stream'
 import {streamEvents} from './constants'
 import {Rule, RulesFunc, ListenerMessage, SelectionStrategies, CreatedStream} from './types'
 
@@ -23,24 +23,16 @@ export const track = (
   strands: Record<string, RulesFunc>,
   {strategy, track}: { strategy?: SelectionStrategies, track?: string} = {},
 ) => {
-  const send: CreatedStream = stream()
+  const stream: CreatedStream = s()
   const {running, trigger} = bProgram(
     strategy,
-    send,
+    stream,
   )
-  const log = send.subscribe((details: ListenerMessage) => ({
-    ...(track && {track}),
-    ...details,
-  }))
-  const selectedStream = send.subscribe(({streamEvent, ...details}: ListenerMessage) => {
-    if (streamEvent !== streamEvents.select) return
-    return details
-  })
-  const feedback = (actions: Record<string, (msg: {payload: unknown, eventName: string}) => void>) => 
-    selectedStream.subscribe(({eventName, payload}) => {
+  const feedback = (actions: Record<string, (msg: {payload: unknown, eventName: string}) => void>) =>
+    stream.subscribe(({streamEvent, eventName, payload}: ListenerMessage) => {
+      if (streamEvent !== streamEvents.select) return
       actions[eventName as string] && actions[eventName as string]({payload, eventName: eventName as string})
-    },
-    )
+    })
   const add = (logicStands: Record<string, RulesFunc>) => {
     for (const strandName in logicStands)
       running.add({
@@ -50,5 +42,5 @@ export const track = (
       })
   }
   add(strands)
-  return Object.freeze({trigger, feedback, log, add})
+  return Object.freeze({trigger, feedback, stream, add})
 }
