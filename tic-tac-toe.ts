@@ -5,6 +5,7 @@ import {
   loop,
   strand,
   selectionStrategies,
+  ListenerMessage,
 } from './src/index'
 
 const winConditions = [
@@ -124,29 +125,34 @@ const {trigger: oTrigger, feedback: oFeedback} = track(oStrands, {
   strategy: selectionStrategies.random,
   track: 'playerO',
 })
-
-xFeedback.subscribe(msg => {
-  if (msg.eventName === 'X') {
+const xActions = {
+  X(msg: ListenerMessage){
     console.log(msg)
     oTrigger({
-      eventName: msg.eventName,
+      eventName: msg.eventName as string,
       payload: msg.payload,
       baseDynamic: baseDynamics.objectObject,
     })
-  }
-  if (msg.eventName === 'X Wins') console.log(msg)
-})
+  },
+  ['X Wins'](msg: ListenerMessage){
+    console.log(msg)
+  },
+}
+xFeedback(xActions)
 
-oFeedback.subscribe(msg => {
-  if (msg.eventName === 'O') {
+const oActions = {
+  O(msg: ListenerMessage){
     console.log(msg)
     xTrigger({
-      eventName: msg.eventName,
+      eventName: msg.eventName as string,
       payload: msg.payload,
       baseDynamic: baseDynamics.objectObject,
     })
-  }
-  if (msg.eventName === 'O Wins') console.log(msg)
-})
+  },
+  ['O Wins'](msg: ListenerMessage){
+    console.log(msg)
+  },
+}
+oFeedback(oActions)
 
 xTrigger({eventName: 'start', baseDynamic: baseDynamics.objectObject})

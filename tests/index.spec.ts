@@ -55,17 +55,20 @@ const strands = {
     ),
   ),
 }
+const actions = {
+  cold(){
+    addCold()
+  },
+  hot(){
+    addHot()
+  },
+}
 
 test('plait(): priority queue', t => {
   const streamLog: unknown[] = []
-  const {trigger, feedback, log} = track(strands)
-  feedback.subscribe(msg => {
-    msg.eventName === 'hot' && addHot()
-  })
-  feedback.subscribe(msg => {
-    msg.eventName === 'cold' && addCold()
-  })
-  log.subscribe(msg => {
+  const {trigger, feedback, stream} = track(strands)
+  feedback(actions)
+  stream.subscribe(msg => {
     streamLog.push(msg)
   })
   trigger({
@@ -79,16 +82,11 @@ test('plait(): priority queue', t => {
 test('plait(): randomized priority queue', t => {
   const streamLog: unknown[] = []
   actual.length = 0
-  const {trigger, feedback, log} = track(strands, {
+  const {trigger, feedback, stream} = track(strands, {
     strategy: selectionStrategies.random,
   })
-  feedback.subscribe(msg => {
-    msg.eventName === 'hot' && addHot()
-  })
-  feedback.subscribe(msg => {
-    msg.eventName === 'cold' && addCold()
-  })
-  log.subscribe(msg => {
+  feedback(actions)
+  stream.subscribe(msg => {
     streamLog.push(msg)
   })
   trigger({
@@ -102,16 +100,11 @@ test('plait(): randomized priority queue', t => {
 test('plait(): chaos selection', t => {
   const streamLog: unknown[]  = []
   actual.length = 0
-  const {trigger, feedback, log} = track(strands, {
+  const {trigger, feedback, stream} = track(strands, {
     strategy: selectionStrategies.chaos,
   })
-  feedback.subscribe(msg => {
-    msg.eventName === 'hot' && addHot()
-  })
-  feedback.subscribe(msg => {
-    msg.eventName === 'cold' && addCold()
-  })
-  log.subscribe(msg => {
+  feedback(actions)
+  stream.subscribe(msg => {
     streamLog.push(msg)
   })
   trigger({

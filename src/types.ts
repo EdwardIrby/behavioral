@@ -26,7 +26,9 @@ export interface Rule {
 export type RuleGenerator =  Generator<Rule, void, ((assertion: (lastEvent: LastEvent) => boolean) => void)>
 export type RulesFunc = () => RuleGenerator
 export type ListenerMessage = {
-  streamEvent: ValueOf<typeof streamEvents>
+  streamEvent?: ValueOf<typeof streamEvents>
+  eventName?: string;
+  payload?: unknown;
   [key: string]: unknown
 }
 export type Listener = (msg: ListenerMessage) => ListenerMessage | void
