@@ -17,5 +17,3 @@ yarn-error.log*
 doc/api/
 
 **/.cache/
-
-.npmrc
