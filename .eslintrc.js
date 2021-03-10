@@ -48,6 +48,7 @@ module.exports = {
       'after',
       {overrides: {'?': 'before', ':': 'before'}},
     ],
+    'eol-last': ['error'],
     'no-prototype-builtins': 0,
     'arrow-parens': ['error', 'as-needed'],
     'comma-dangle': ['error', 'always-multiline'],
