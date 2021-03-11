@@ -1,8 +1,14 @@
 import {bProgram} from './bProgram'
 import {stream as s} from './stream'
 import {streamEvents} from './constants'
-import {Rule, RulesFunc, ListenerMessage, SelectionStrategies, CreatedStream} from './types'
-
+import {
+  RulesFunc,
+  ListenerMessage,
+  SelectionStrategies,
+  CreatedStream,
+  IdiomSet,
+  TrackReturn,
+} from './types'
 
 export const loop = (gen: RulesFunc, loopCallback = () => true): RulesFunc =>
   function* ()  {
@@ -11,27 +17,25 @@ export const loop = (gen: RulesFunc, loopCallback = () => true): RulesFunc =>
     }
   }
 
-export const strand = (...ruleList: Rule[]): RulesFunc =>
+export const strand = (...idiomSets: IdiomSet[]): RulesFunc =>
   function* ()  {
-    for (const {assert, ...rule} of ruleList) {
-      const callback = yield rule
-      assert && callback(assert)
+    for (const set of idiomSets) {
+      yield set
     }
   }
 
 export const track = (
-  strands: Record<string, RulesFunc>,
-  {strategy, track}: { strategy?: SelectionStrategies, track?: string} = {},
-) => {
+  strands: Record<string, RulesFunc>, strategy?: SelectionStrategies,
+): Readonly<TrackReturn> => {
   const stream: CreatedStream = s()
   const {running, trigger} = bProgram(
     strategy,
     stream,
   )
-  const feedback = (actions: Record<string, (msg: {payload: unknown, eventName: string}) => void>) =>
+  const feedback = (actions: Record<string, (payload: unknown) => void>) =>
     stream.subscribe(({streamEvent, eventName, payload}: ListenerMessage) => {
       if (streamEvent !== streamEvents.select) return
-      actions[eventName as string] && actions[eventName as string]({payload, eventName: eventName as string})
+      actions[eventName as string] && actions[eventName as string](payload)
     })
   const add = (logicStands: Record<string, RulesFunc>) => {
     for (const strandName in logicStands)

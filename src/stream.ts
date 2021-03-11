@@ -1,5 +1,5 @@
-import {Listener, ListenerMessage} from './types'
-export function stream(initial?: ListenerMessage | void){
+import {Listener, ListenerMessage, CreatedStream} from './types'
+export const stream = (initial?: ListenerMessage | void): CreatedStream =>{
   const listeners: Array<(value: ListenerMessage) => void> = []
   function createdStream(value: ListenerMessage) {
     for (const i in listeners) {

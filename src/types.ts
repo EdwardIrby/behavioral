@@ -1,68 +1,61 @@
 import {streamEvents, selectionStrategies, baseDynamics} from './constants'
 
+// util
 export type ValueOf<T> = T[keyof T]
 
-export interface LastEvent {
-  strandName: string;
-  priority: number;
-  eventName?: string
-  callback?: (lastEvent: LastEvent) => boolean
+// rules.ts
+export interface Callback {
+  <P>(payload:P): boolean;
+}
+export interface RuleParameterValue {
+  eventName: string
   payload?: unknown
+  callback?: Callback
 }
 
-export type IdiomValue = {
-  eventName?: string
-  callback?: (lastEvent: LastEvent) => boolean
-  payload?: unknown
+export interface IdiomSet {
+  waitFor?: RuleParameterValue[]
+  request?: RuleParameterValue[]
+  block?: RuleParameterValue[]
 }
 
-
-export interface Rule {
-  assert?:(lastEvent: LastEvent) => boolean
-  request?: IdiomValue[]
-  waitFor?: IdiomValue[]
-  block?: IdiomValue[]
-}
-export type RuleGenerator =  Generator<Rule, void, ((assertion: (lastEvent: LastEvent) => boolean) => void)>
-export type RulesFunc = () => RuleGenerator
+// stream.ts
 export type ListenerMessage = {
-  streamEvent?: ValueOf<typeof streamEvents>
-  eventName?: string;
-  payload?: unknown;
+  streamEvent: ValueOf<typeof streamEvents>
+  eventName?: string
   [key: string]: unknown
 }
 export type Listener = (msg: ListenerMessage) => ListenerMessage | void
-
-interface BidRequired {
-  strandName: string
-  priority: number
-  logicStrand: RuleGenerator
-}
-
-export interface Bid extends Rule, BidRequired{}
-
-export interface CandidateBid extends Bid {
-  request: IdiomValue[]
-}
-export interface BlockedBid extends Bid {
-  block: IdiomValue[]
-}
-
-export interface MappedCandidateBid extends IdiomValue, BidRequired{
-  assert?: ((lastEvent: LastEvent) => boolean) | undefined;
-  waitFor?: IdiomValue[] | undefined;
-  block?: IdiomValue[] | undefined;
-}
-export type Strategy = ((candidateEvents: MappedCandidateBid[], blockedEvents: IdiomValue[]) => MappedCandidateBid)
-export type SelectionStrategies = ValueOf<typeof selectionStrategies> | Strategy
 export interface CreatedStream {
   (value: ListenerMessage): void
   subscribe: (listener: Listener) => CreatedStream
 }
-export type Trigger = ({eventName, payload, baseDynamic}: {
-  eventName: string;
-  payload?: unknown;
-  baseDynamic: ValueOf<typeof baseDynamics>;
-}) => void
 
-export type Add = (logicStands: Record<string, RulesFunc>) => void
+
+// track.ts
+export type RuleGenerator =  Generator<IdiomSet, void, unknown>
+export type RulesFunc = () => RuleGenerator
+export interface TrackReturn {
+  trigger: <T>({eventName, payload, baseDynamic}: {
+      eventName: string;
+      payload?: T | undefined;
+      baseDynamic: ValueOf<typeof baseDynamics>;
+  }) => void;
+  feedback: (actions: Record<string, (payload: unknown) => void
+  >) => CreatedStream
+  stream: CreatedStream;
+  add: (logicStands: Record<string, RulesFunc>) => void;
+}
+
+// bProgram.ts
+export type RunningBid = {
+  strandName: string
+  priority: number
+  logicStrand: RuleGenerator
+}
+export type PendingBid = IdiomSet & RunningBid
+
+export type CandidateBid =  RunningBid & RuleParameterValue & Omit<IdiomSet, 'request'>
+
+export type Strategy = ((candidateEvents: CandidateBid[], blockedEvents: RuleParameterValue[]) => CandidateBid)
+export type SelectionStrategies = ValueOf<typeof selectionStrategies> | Strategy

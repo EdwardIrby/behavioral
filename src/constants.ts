@@ -1,33 +1,24 @@
-interface SelectionStrategies {
-  chaos: 'chaos'
-  random: 'randomizedPriority'
-  priority: 'priority'
-}
-export const selectionStrategies: SelectionStrategies = {
+export const selectionStrategies = {
   chaos: 'chaos',
   random: 'randomizedPriority',
   priority: 'priority',
-}
-export interface BaseDynamics {
-  objectObject:'object-object'
-  objectPerson:'object-person'
-  personPerson:'person-person'
-}
-export const baseDynamics: BaseDynamics = {
+} as const
+
+export const baseDynamics = {
   objectObject: 'object-object',
   objectPerson: 'object-person',
   personPerson: 'person-person',
-}
+} as const
 
-interface StreamEvents {
-  trigger: 'triggerEvent'
-  select: 'selectEvent'
-  state: 'stateSnapshot'
-  assert: 'assertEvent'
-}
-export const streamEvents: StreamEvents = {
+export const streamEvents = {
   trigger: 'triggerEvent',
   select: 'selectEvent',
   state: 'stateSnapshot',
   assert: 'assertEvent',
-}
+} as const
+
+export const idioms = {
+  waitFor:'waitFor',
+  request: 'request',
+  block: 'block',
+} as const

@@ -1,60 +1,50 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import {selectionStrategies, streamEvents, baseDynamics} from './constants'
 import {
   ValueOf,
-  BlockedBid,
   CandidateBid,
-  MappedCandidateBid,
-  LastEvent,
-  Bid,
-  IdiomValue,
+  RunningBid,
+  PendingBid,
   Strategy,
   SelectionStrategies,
+  RuleParameterValue,
   CreatedStream,
 } from './types'
 /** @description a function that checks whether a parameter callback function returns true or that the parameter evenName equals the request event name */
-export const requestInParameter = (request: MappedCandidateBid) => (parameter: IdiomValue) =>{
-  const {
-    strandName,
-    priority,
-    eventName,
-    callback,
-    payload,
-  } = request
-  return  parameter.callback
-  ? parameter.callback({
-    strandName,
-    priority,
-    eventName,
-    callback,
-    payload,
-  })
-  : request.eventName === parameter.eventName
+export const requestInParameter = (
+  {eventName: requestEventName, payload: requestPayload}: CandidateBid,
+) => ({eventName: payloadEventName, callback: payloadCallback}: RuleParameterValue): boolean =>{
+  const isMatchingEventName = requestEventName === payloadEventName
+  if(!isMatchingEventName) return false
+  return payloadCallback ? payloadCallback(requestPayload) : true
 }
   
 
-const candidatesList = (pending: Bid[]) => {
-  const candidates = pending.filter(({request}) => request) as CandidateBid[]
-  return candidates.reduce<MappedCandidateBid[]>(
-    (acc, {request, ...rest}) => acc.concat(
+const candidatesList = (pending: PendingBid[]) => pending.reduce<CandidateBid[]>(
+  (acc, {request, ...rest}) => acc.concat(
       // Flatten bids' request arrays
-      request.map(
+      request ? request.map(
         event => ({...rest, ...event}), // create candidates for each request with current bids priority
-      ),
-    ),
-    [],
-  )
-}
-const blockedList = (pending: Bid[]) => {
-  const blocked = pending.filter(({block}) => block) as BlockedBid[]
-  return blocked.flatMap(({block}) => block)
-}
+      ) : [],
+  ),
+  [],
+)
+const blockedList = (pending: PendingBid[]) => pending.reduce<RuleParameterValue[]>(
+  (acc, {block}) => acc.concat(
+      // Flatten bids' block arrays
+      block ? block.map(
+        event => event, // create candidates for each block with current bids priority
+      ) : [],
+  ),
+  [],
+)
 const shuffle = (array: unknown[]) => {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
     ;[array[i], array[j]] = [array[j], array[i]]
   }
 }
-const randomizedPriority = (candidateEvents: MappedCandidateBid[], blockedEvents: IdiomValue[]) => {
+const randomizedPriority = (candidateEvents: CandidateBid[], blockedEvents: RuleParameterValue[]) => {
   const filteredEvents = candidateEvents.filter(
     request => !blockedEvents.some(requestInParameter(request)),
   )
@@ -63,8 +53,8 @@ const randomizedPriority = (candidateEvents: MappedCandidateBid[], blockedEvents
     ({priority: priorityA}, {priority: priorityB}) => priorityA - priorityB,
   )[0]
 }
-const chaosStrategy = (candidateEvents: MappedCandidateBid[], blockedEvents: IdiomValue[]) => {
-  const randomArrayElement = (arr: MappedCandidateBid[]) =>
+const chaosStrategy = (candidateEvents: CandidateBid[], blockedEvents: RuleParameterValue[]) => {
+  const randomArrayElement = (arr: CandidateBid[]) =>
     arr[Math.floor(Math.random() * Math.floor(arr.length))]
   return randomArrayElement(
     candidateEvents.filter(
@@ -72,7 +62,7 @@ const chaosStrategy = (candidateEvents: MappedCandidateBid[], blockedEvents: Idi
     ),
   )
 }
-const priorityStrategy = (candidateEvents: MappedCandidateBid[], blockedEvents: IdiomValue[]) => {
+const priorityStrategy = (candidateEvents: CandidateBid[], blockedEvents: RuleParameterValue[]) => {
   return candidateEvents
     .filter(request => !blockedEvents.some(requestInParameter(request)))
     .sort(
@@ -89,14 +79,21 @@ const strategies: Record<ValueOf<typeof selectionStrategies>, Strategy> = {
 export const bProgram = (
   strategy: SelectionStrategies = selectionStrategies.priority,
   stream: CreatedStream,
-) => {
+):{
+  running: Set<RunningBid>;
+  trigger: <T>({eventName, payload, baseDynamic}: {
+      eventName: string;
+      payload?: T | undefined;
+      baseDynamic: ValueOf<typeof baseDynamics>;
+  }) => void;
+} => {
   const eventSelectionStrategy  =
     typeof strategy === 'string'
       ? strategies[strategy as ValueOf<typeof selectionStrategies>]
       : strategy as Strategy
-  const pending = new Set<Bid>()
-  const running = new Set<Bid>()
-  let lastEvent = {} as MappedCandidateBid
+  const pending = new Set<PendingBid>()
+  const running = new Set<RunningBid>()
+  let lastEvent = {} as CandidateBid
   function run() {
     running.size && step()
   }
@@ -136,7 +133,7 @@ export const bProgram = (
     })
     run()
   }
-  function stateChart(candidates: MappedCandidateBid[], blocked: IdiomValue[]) {
+  function stateChart(candidates: CandidateBid[], blocked: RuleParameterValue[]) {
     const strands = [...pending]
       .filter(({strandName}) => strandName)
       .map(({strandName}) => strandName)
