@@ -45,12 +45,10 @@ const strands = {
       {
         waitFor: [{eventName: 'hot'}],
         block: [{eventName: 'cold'}],
-        assert: ({eventName}) => eventName === 'hot',
       },
       {
         waitFor: [{eventName: 'cold'}],
         block: [{eventName: 'hot'}],
-        assert: ({eventName}) => eventName === 'cold',
       },
     ),
   ),

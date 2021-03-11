@@ -97,34 +97,13 @@ export const bProgram = (
   const pending = new Set<Bid>()
   const running = new Set<Bid>()
   let lastEvent = {} as MappedCandidateBid
-  const streamAssertion = (assert: (lastEvent: LastEvent) => boolean)  => {
-    const   {
-      strandName,
-      priority,
-      eventName,
-      callback,
-      payload,
-    } = lastEvent
-    stream({
-      streamEvent: streamEvents.assert,
-      eventName: lastEvent.eventName,
-      ok: assert({
-        strandName,
-        priority,
-        eventName,
-        callback,
-        payload,
-      }),
-    })
-  }
-    
   function run() {
     running.size && step()
   }
   function step() {
     running.forEach(bid => {
       const {logicStrand, priority, strandName} = bid
-      const {value, done} = logicStrand.next(streamAssertion)
+      const {value, done} = logicStrand.next()
       !done &&
         pending.add({
           strandName,
