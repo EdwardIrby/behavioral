@@ -1,7 +1,6 @@
 import {bProgram} from './bProgram'
 import {stream as s} from './stream'
-import {streamEvents} from './constants'
-import {strategies} from './strategies'
+import {streamEvents, selectionStrategies} from './constants'
 import {
   RulesFunc,
   ListenerMessage,
@@ -25,9 +24,9 @@ export const strand = (...idiomSets: IdiomSet[]): RulesFunc =>
     }
   }
 
-export const track: Track = (strands, options = {strategy: strategies.priority, debug: false})=> {
+export const track: Track = (strands, {strategy = selectionStrategies.priority, debug = false}= {})=> {
   const stream: CreatedStream = s()
-  const {running, trigger} = bProgram({stream, ...options})
+  const {running, trigger} = bProgram({stream, strategy, debug})
   const feedback = (actions: Record<string, ({eventName, payload}: FeedbackMessage) => void>) =>
     stream.subscribe(({streamEvent, eventName, payload}: ListenerMessage) => {
       if (streamEvent !== streamEvents.select) return

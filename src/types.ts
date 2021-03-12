@@ -51,7 +51,7 @@ export type Strategy = ((candidateEvents: CandidateBid[], blockedEvents: RulePar
 export type SelectionStrategies = ValueOf<typeof selectionStrategies> | Strategy
 
 export interface Track {
-  (strand: Record<string, RulesFunc>, options?: {strategy: SelectionStrategies, debug?: boolean}):  {
+  (strand: Record<string, RulesFunc>, options?: {strategy?: SelectionStrategies, debug?: boolean}):  {
     trigger:Trigger
     feedback: (actions: Record<string, (obj: FeedbackMessage) => void
     >) => CreatedStream
