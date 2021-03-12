@@ -1,14 +1,11 @@
 import {streamEvents, selectionStrategies, baseDynamics} from './constants'
 
-// util
 export type ValueOf<T> = T[keyof T]
 
-// rules.ts
-export interface Callback {
-  <P>(payload:P): boolean;
-}
+export type CallbackArgs<T> = { eventName?: string, payload?: T}
+export type Callback = (args: CallbackArgs<any>) => boolean;
 export interface RuleParameterValue {
-  eventName: string
+  eventName?: string
   payload?: unknown
   callback?: Callback
 }
@@ -19,7 +16,6 @@ export interface IdiomSet {
   block?: RuleParameterValue[]
 }
 
-// stream.ts
 export type ListenerMessage = {
   streamEvent: ValueOf<typeof streamEvents>
   eventName?: string
@@ -30,24 +26,18 @@ export interface CreatedStream {
   (value: ListenerMessage): void
   subscribe: (listener: Listener) => CreatedStream
 }
+export type Trigger =
+  (args: {
+    eventName?: string;
+    payload?: unknown;
+    baseDynamic?: ValueOf<typeof baseDynamics>;
+  }) =>void
 
-
-// track.ts
 export type RuleGenerator =  Generator<IdiomSet, void, unknown>
 export type RulesFunc = () => RuleGenerator
-export interface TrackReturn {
-  trigger: <T>({eventName, payload, baseDynamic}: {
-      eventName: string;
-      payload?: T | undefined;
-      baseDynamic: ValueOf<typeof baseDynamics>;
-  }) => void;
-  feedback: (actions: Record<string, (payload: unknown) => void
-  >) => CreatedStream
-  stream: CreatedStream;
-  add: (logicStands: Record<string, RulesFunc>) => void;
-}
 
-// bProgram.ts
+export type FeedbackMessage = {eventName?: string, payload?: unknown}
+
 export type RunningBid = {
   strandName: string
   priority: number
@@ -59,3 +49,36 @@ export type CandidateBid =  RunningBid & RuleParameterValue & Omit<IdiomSet, 're
 
 export type Strategy = ((candidateEvents: CandidateBid[], blockedEvents: RuleParameterValue[]) => CandidateBid)
 export type SelectionStrategies = ValueOf<typeof selectionStrategies> | Strategy
+
+export interface Track {
+  (strand: Record<string, RulesFunc>, options?: {strategy: SelectionStrategies, debug?: boolean}):  {
+    trigger:Trigger
+    feedback: (actions: Record<string, (obj: FeedbackMessage) => void
+    >) => CreatedStream
+    stream: CreatedStream;
+    add: (logicStands: Record<string, RulesFunc>) => void;
+  }
+}
+export interface BProgram {
+  (
+    props: {strategy?: SelectionStrategies,
+    stream: CreatedStream,
+    debug?: boolean}
+  ):{
+    running: Set<RunningBid>;
+    trigger: Trigger
+  } 
+} 
+
+// stateChart.ts 
+export interface StateChart {
+  (props: {candidates: CandidateBid[], blocked: RuleParameterValue[], pending: Set<PendingBid>}): {
+    streamEvent: 'stateSnapshot';
+    logicStrands: string[];
+    requestedEvents: {
+        eventName: string | undefined;
+        payload: unknown;
+    }[];
+    blockedEvents: (string | undefined)[];
+  }
+}

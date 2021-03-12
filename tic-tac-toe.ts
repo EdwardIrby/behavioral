@@ -4,8 +4,13 @@ import {
   baseDynamics,
   loop,
   strand,
+  waitFor,
+  request,
+  block,
   selectionStrategies,
-  ListenerMessage,
+  FeedbackMessage,
+  CallbackArgs,
+  RulesFunc,
 } from './src/index'
 
 const winConditions = [
@@ -23,57 +28,39 @@ const winConditions = [
 ]
 
 const squares = [0, 1, 2, 3, 4, 5, 6, 7, 8]
-const squaresTaken = squares.reduce((acc: Record<string, unknown>, square) => {
+const squaresTaken = squares.reduce((acc: Record<string, RulesFunc>, square) => {
   acc[`(${square}) taken`] = strand(
-    {
-      waitFor: [{callback: ({payload}) => square === payload}], // [{ eventName: string, callback?: function | undefined, payload?: Transferable | undefined}]
-    },
-    {
-      block: [{callback: ({payload}) => square === payload}],
-    },
+    waitFor({callback: ({payload}:CallbackArgs<number>) => square === payload}),
+    block({callback: ({payload}:CallbackArgs<number>) => square === payload}),
   )
 
   return acc
 }, {})
 
 const playerWins = (player: string) =>
-  winConditions.reduce((acc: Record<string, unknown>, win) => {
+  winConditions.reduce((acc: Record<string, RulesFunc>, win) => {
     acc[`${player}Wins (${win})`] = strand(
-      {
-        waitFor: [
-          {
-            callback: ({eventName, payload}) =>
-              eventName === player && win.includes(payload as number),
-          },
-        ],
-      },
-      {
-        waitFor: [
-          {
-            callback: ({eventName, payload}) =>
-              eventName === player && win.includes(payload as number),
-          },
-        ],
-      },
-      {
-        waitFor: [
-          {
-            callback: ({eventName, payload}) =>
-              eventName === player && win.includes(payload as number),
-          },
-        ],
-      },
-      {
-        request: [{eventName: `${player} Wins`, payload: win}],
-      },
+      waitFor({
+        callback: ({eventName, payload}) =>
+          eventName === player && win.includes(payload),
+      }),
+      waitFor({
+        callback: ({eventName, payload}) =>
+          eventName === player && win.includes(payload),
+      }),
+      waitFor({
+        callback: ({eventName, payload}) =>
+          eventName === player && win.includes(payload), 
+      }),
+      request({eventName: `${player} Wins`, payload: win}),
     )
     return acc
   }, {})
 
 const enforceTurns = loop(
   strand(
-    {waitFor: [{eventName: 'X'}], block: [{eventName: 'O'}]},
-    {waitFor: [{eventName: 'O'}], block: [{eventName: 'X'}]},
+    Object.assign(waitFor({eventName: 'X'}), block({eventName: 'O'})),
+    Object.assign(waitFor({eventName: 'O'}), block({eventName: 'X'})),
   ),
 )
 
@@ -85,17 +72,8 @@ const playerMove = (player: string) =>
   )
 
 const stopGame = strand(
-  {
-    waitFor: [
-      {
-        eventName: 'X Wins',
-      },
-      {
-        eventName: 'O Wins',
-      },
-    ],
-  },
-  {block: [{eventName: 'X'}, {eventName: 'O'}]},
+  waitFor({eventName: 'X Wins'},{eventName: 'O Wins'}),
+  block({eventName: 'X'}, {eventName: 'O'}),
 )
 
 const strands = {
@@ -116,40 +94,34 @@ const oStrands = {
   oMoves: playerMove('O'),
 }
 
-const {trigger: xTrigger, feedback: xFeedback} = track(xStrands, {
-  strategy: selectionStrategies.random,
-  track: 'playerX',
-})
+const {trigger: xTrigger, feedback: xFeedback} = track(xStrands, {strategy: selectionStrategies.random})
 
-const {trigger: oTrigger, feedback: oFeedback} = track(oStrands, {
-  strategy: selectionStrategies.random,
-  track: 'playerO',
-})
+const {trigger: oTrigger, feedback: oFeedback} = track(oStrands, {strategy: selectionStrategies.random})
 const xActions = {
-  X(msg: ListenerMessage){
+  X(msg:FeedbackMessage){
     console.log(msg)
     oTrigger({
-      eventName: msg.eventName as string,
+      eventName: msg.eventName,
       payload: msg.payload,
       baseDynamic: baseDynamics.objectObject,
     })
   },
-  ['X Wins'](msg: ListenerMessage){
+  ['X Wins'](msg:FeedbackMessage){
     console.log(msg)
   },
 }
 xFeedback(xActions)
 
 const oActions = {
-  O(msg: ListenerMessage){
+  O(msg:FeedbackMessage){
     console.log(msg)
     xTrigger({
-      eventName: msg.eventName as string,
+      eventName: msg.eventName,
       payload: msg.payload,
       baseDynamic: baseDynamics.objectObject,
     })
   },
-  ['O Wins'](msg: ListenerMessage){
+  ['O Wins'](msg:FeedbackMessage){
     console.log(msg)
   },
 }

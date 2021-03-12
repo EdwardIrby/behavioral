@@ -1,13 +1,14 @@
 import {bProgram} from './bProgram'
 import {stream as s} from './stream'
 import {streamEvents} from './constants'
+import {strategies} from './strategies'
 import {
   RulesFunc,
   ListenerMessage,
-  SelectionStrategies,
   CreatedStream,
   IdiomSet,
-  TrackReturn,
+  Track,
+  FeedbackMessage,
 } from './types'
 
 export const loop = (gen: RulesFunc, loopCallback = () => true): RulesFunc =>
@@ -24,18 +25,13 @@ export const strand = (...idiomSets: IdiomSet[]): RulesFunc =>
     }
   }
 
-export const track = (
-  strands: Record<string, RulesFunc>, strategy?: SelectionStrategies,
-): Readonly<TrackReturn> => {
+export const track: Track = (strands, options = {strategy: strategies.priority, debug: false})=> {
   const stream: CreatedStream = s()
-  const {running, trigger} = bProgram(
-    strategy,
-    stream,
-  )
-  const feedback = (actions: Record<string, (payload: unknown) => void>) =>
+  const {running, trigger} = bProgram({stream, ...options})
+  const feedback = (actions: Record<string, ({eventName, payload}: FeedbackMessage) => void>) =>
     stream.subscribe(({streamEvent, eventName, payload}: ListenerMessage) => {
       if (streamEvent !== streamEvents.select) return
-      actions[eventName as string] && actions[eventName as string](payload)
+      actions[eventName as string] && actions[eventName as string]({eventName, payload})
     })
   const add = (logicStands: Record<string, RulesFunc>) => {
     for (const strandName in logicStands)

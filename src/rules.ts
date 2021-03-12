@@ -1,11 +1,11 @@
-import {ValueOf} from './types'
+import {ValueOf, Callback} from './types'
 import {idioms} from './constants'
 
 
-const idiom = (key: ValueOf<typeof idioms>)  => <T>(...idioms: {
-  eventName: string
-  payload?: T
-  callback?: <P>(props: {eventName: string; payload?:P}) => boolean;
+const idiom = (key: ValueOf<typeof idioms>)  => (...idioms: {
+  eventName?: string
+  payload?: unknown
+  callback?: Callback
 }[]) => {
   return {
     [key]: [...idioms],

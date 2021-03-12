@@ -78,7 +78,7 @@ test('plait(): priority queue', t => {
 test('plait(): randomized priority queue', t => {
   const streamLog: unknown[] = []
   actual.length = 0
-  const {trigger, feedback, stream} = track(strands, selectionStrategies.random)
+  const {trigger, feedback, stream} = track(strands, {strategy: selectionStrategies.random})
   feedback(actions)
   stream.subscribe(msg => {
     streamLog.push(msg)
@@ -94,7 +94,7 @@ test('plait(): randomized priority queue', t => {
 test('plait(): chaos selection', t => {
   const streamLog: unknown[]  = []
   actual.length = 0
-  const {trigger, feedback, stream} = track(strands, selectionStrategies.chaos)
+  const {trigger, feedback, stream} = track(strands, {strategy: selectionStrategies.chaos})
   feedback(actions)
   stream.subscribe(msg => {
     streamLog.push(msg)
