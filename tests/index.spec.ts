@@ -6,6 +6,9 @@ import {
   selectionStrategies,
   loop,
   strand,
+  waitFor,
+  request,
+  block,
 } from '../src'
 const actual: string[] = []
 const expected = [
@@ -19,39 +22,32 @@ const expected = [
 
 const addHot = () => actual.push('Add hot')
 const addCold = () => actual.push('Add cold')
-
 const strands = {
   addHot: strand(
-    {
-      waitFor: [
-        {
-          eventName: 'start',
-          callback: ({eventName}) => eventName === 'start',
-        },
-      ],
-    },
-    {request: [{eventName: 'hot'}]},
-    {request: [{eventName: 'hot'}]},
-    {request: [{eventName: 'hot'}]},
+    waitFor({
+      eventName: 'start',
+      callback: () => true,
+    }),
+    request({eventName: 'hot'}),
+    request({eventName: 'hot'}),
+    request({eventName: 'hot'}),
   ),
   addCold: strand(
-    {waitFor: [{eventName: 'start'}]},
-    {request: [{eventName: 'cold'}]},
-    {request: [{eventName: 'cold'}]},
-    {request: [{eventName: 'cold'}]},
+    waitFor({eventName: 'start'}),
+    request({eventName: 'cold'}),
+    request({eventName: 'cold'}),
+    request({eventName: 'cold'}),
   ),
   mixHotCold: loop(
     strand(
-      {
-        waitFor: [{eventName: 'hot'}],
-        block: [{eventName: 'cold'}],
-        assert: ({eventName}) => eventName === 'hot',
-      },
-      {
-        waitFor: [{eventName: 'cold'}],
-        block: [{eventName: 'hot'}],
-        assert: ({eventName}) => eventName === 'cold',
-      },
+      Object.assign(
+        waitFor({eventName: 'hot'}),
+        block({eventName: 'cold'}),
+      ),
+      Object.assign(
+        waitFor({eventName: 'cold'}),
+        block({eventName: 'hot'}),
+      ),
     ),
   ),
 }
@@ -66,7 +62,7 @@ const actions = {
 
 test('plait(): priority queue', t => {
   const streamLog: unknown[] = []
-  const {trigger, feedback, stream} = track(strands)
+  const {trigger, feedback, stream} = track(strands, {debug: true})
   feedback(actions)
   stream.subscribe(msg => {
     streamLog.push(msg)
@@ -82,9 +78,7 @@ test('plait(): priority queue', t => {
 test('plait(): randomized priority queue', t => {
   const streamLog: unknown[] = []
   actual.length = 0
-  const {trigger, feedback, stream} = track(strands, {
-    strategy: selectionStrategies.random,
-  })
+  const {trigger, feedback, stream} = track(strands, {strategy: selectionStrategies.random, debug: true})
   feedback(actions)
   stream.subscribe(msg => {
     streamLog.push(msg)
@@ -100,9 +94,7 @@ test('plait(): randomized priority queue', t => {
 test('plait(): chaos selection', t => {
   const streamLog: unknown[]  = []
   actual.length = 0
-  const {trigger, feedback, stream} = track(strands, {
-    strategy: selectionStrategies.chaos,
-  })
+  const {trigger, feedback, stream} = track(strands, {strategy: selectionStrategies.chaos, debug: true})
   feedback(actions)
   stream.subscribe(msg => {
     streamLog.push(msg)

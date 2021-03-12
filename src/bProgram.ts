@@ -1,130 +1,41 @@
-import {selectionStrategies, streamEvents, baseDynamics} from './constants'
+import {selectionStrategies, streamEvents} from './constants'
+import {stateChart} from './stateChart'
+import {requestInParameter} from './requestInParameter'
 import {
   ValueOf,
-  BlockedBid,
   CandidateBid,
-  MappedCandidateBid,
-  LastEvent,
-  Bid,
-  IdiomValue,
+  RunningBid,
+  PendingBid,
   Strategy,
-  SelectionStrategies,
-  CreatedStream,
+  BProgram,
+  Trigger,
 } from './types'
 /** @description a function that checks whether a parameter callback function returns true or that the parameter evenName equals the request event name */
-export const requestInParameter = (request: MappedCandidateBid) => (parameter: IdiomValue) =>{
-  const {
-    strandName,
-    priority,
-    eventName,
-    callback,
-    payload,
-  } = request
-  return  parameter.callback
-  ? parameter.callback({
-    strandName,
-    priority,
-    eventName,
-    callback,
-    payload,
-  })
-  : request.eventName === parameter.eventName
-}
-  
 
-const candidatesList = (pending: Bid[]) => {
-  const candidates = pending.filter(({request}) => request) as CandidateBid[]
-  return candidates.reduce<MappedCandidateBid[]>(
-    (acc, {request, ...rest}) => acc.concat(
-      // Flatten bids' request arrays
-      request.map(
-        event => ({...rest, ...event}), // create candidates for each request with current bids priority
-      ),
-    ),
-    [],
-  )
-}
-const blockedList = (pending: Bid[]) => {
-  const blocked = pending.filter(({block}) => block) as BlockedBid[]
-  return blocked.flatMap(({block}) => block)
-}
-const shuffle = (array: unknown[]) => {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
-    ;[array[i], array[j]] = [array[j], array[i]]
-  }
-}
-const randomizedPriority = (candidateEvents: MappedCandidateBid[], blockedEvents: IdiomValue[]) => {
-  const filteredEvents = candidateEvents.filter(
-    request => !blockedEvents.some(requestInParameter(request)),
-  )
-  shuffle(filteredEvents)
-  return filteredEvents.sort(
-    ({priority: priorityA}, {priority: priorityB}) => priorityA - priorityB,
-  )[0]
-}
-const chaosStrategy = (candidateEvents: MappedCandidateBid[], blockedEvents: IdiomValue[]) => {
-  const randomArrayElement = (arr: MappedCandidateBid[]) =>
-    arr[Math.floor(Math.random() * Math.floor(arr.length))]
-  return randomArrayElement(
-    candidateEvents.filter(
-      request => !blockedEvents.some(requestInParameter(request)),
-    ),
-  )
-}
-const priorityStrategy = (candidateEvents: MappedCandidateBid[], blockedEvents: IdiomValue[]) => {
-  return candidateEvents
-    .filter(request => !blockedEvents.some(requestInParameter(request)))
-    .sort(
-      ({priority: priorityA}, {priority: priorityB}) =>
-        priorityA - priorityB,
-    )[0]
-}
-const strategies: Record<ValueOf<typeof selectionStrategies>, Strategy> = {
-  [selectionStrategies.random]: randomizedPriority,
-  [selectionStrategies.priority]: priorityStrategy,
-  [selectionStrategies.chaos]: chaosStrategy,
-}
+import {strategies} from './strategies'
+import {blockedList, candidatesList} from './lists'
 
-export const bProgram = (
-  strategy: SelectionStrategies = selectionStrategies.priority,
-  stream: CreatedStream,
-) => {
+
+
+export const bProgram: BProgram = ({
+  strategy,
+  stream,
+  debug,
+}) => {
   const eventSelectionStrategy  =
     typeof strategy === 'string'
       ? strategies[strategy as ValueOf<typeof selectionStrategies>]
       : strategy as Strategy
-  const pending = new Set<Bid>()
-  const running = new Set<Bid>()
-  let lastEvent = {} as MappedCandidateBid
-  const streamAssertion = (assert: (lastEvent: LastEvent) => boolean)  => {
-    const   {
-      strandName,
-      priority,
-      eventName,
-      callback,
-      payload,
-    } = lastEvent
-    stream({
-      streamEvent: streamEvents.assert,
-      eventName: lastEvent.eventName,
-      ok: assert({
-        strandName,
-        priority,
-        eventName,
-        callback,
-        payload,
-      }),
-    })
-  }
-    
+  const pending = new Set<PendingBid>()
+  const running = new Set<RunningBid>()
+  let lastEvent = {} as CandidateBid
   function run() {
     running.size && step()
   }
   function step() {
     running.forEach(bid => {
       const {logicStrand, priority, strandName} = bid
-      const {value, done} = logicStrand.next(streamAssertion)
+      const {value, done} = logicStrand.next()
       !done &&
         pending.add({
           strandName,
@@ -137,7 +48,7 @@ export const bProgram = (
     const candidates = candidatesList([...pending])
     const blocked = blockedList([...pending])
     lastEvent = eventSelectionStrategy(candidates, blocked)
-    stream(stateChart(candidates, blocked))
+    debug && stream(stateChart({candidates, blocked, pending}))
     lastEvent && nextStep()
   }
   function nextStep() {
@@ -157,34 +68,8 @@ export const bProgram = (
     })
     run()
   }
-  function stateChart(candidates: MappedCandidateBid[], blocked: IdiomValue[]) {
-    const strands = [...pending]
-      .filter(({strandName}) => strandName)
-      .map(({strandName}) => strandName)
-    const Blocked = [
-      ...new Set(blocked.map(({eventName}) => eventName).filter(Boolean)),
-    ]
-    const Requests = [
-      ...new Set(
-        candidates
-          .map(request => ({
-            eventName: request.eventName,
-            payload: request.payload,
-          }))
-          .filter(Boolean),
-      ),
-    ]
-    return {
-      streamEvent: streamEvents.state,
-      logicStrands: [...new Set(strands)],
-      requestedEvents: Requests,
-      blockedEvents: Blocked,
-    }
-  }
-  const trigger = ({
+  const trigger: Trigger = ({
     eventName, payload, baseDynamic,
-  }: {
-    eventName: string, payload?: unknown, baseDynamic: ValueOf<typeof baseDynamics>
   }) => {
     const logicStrand = function* () {
       yield {
@@ -197,7 +82,7 @@ export const bProgram = (
       priority: 0,
       logicStrand: logicStrand(),
     })
-    stream({
+    debug && stream({
       streamEvent: streamEvents.trigger,
       baseDynamic,
       eventName: `Trigger(${eventName})`,

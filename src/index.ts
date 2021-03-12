@@ -3,6 +3,7 @@ export {
   baseDynamics,
   streamEvents,
 } from './constants'
-export {requestInParameter} from './bProgram'
+export {requestInParameter} from './requestInParameter'
 export {track, strand, loop} from './track'
-export {Trigger, CreatedStream, Add, ListenerMessage} from './types'
+export {CreatedStream, ListenerMessage, FeedbackMessage, CallbackArgs, RulesFunc} from './types'
+export * from './rules'
