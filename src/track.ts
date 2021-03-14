@@ -28,9 +28,10 @@ export const track: Track = (strands, {strategy = selectionStrategies.priority, 
   const stream: CreatedStream = s()
   const {running, trigger} = bProgram({stream, strategy, debug})
   const feedback = (actions: Record<string, ({eventName, payload}: FeedbackMessage) => void>) =>
-    stream.subscribe(({streamEvent, eventName, payload}: ListenerMessage) => {
+    stream.subscribe(({streamEvent, ...rest}: ListenerMessage) => {
       if (streamEvent !== streamEvents.select) return
-      actions[eventName as string] && actions[eventName as string]({eventName, payload})
+      const {eventName, payload} = rest as FeedbackMessage
+      actions[eventName] && actions[eventName]({eventName, payload})
     })
   const add = (logicStands: Record<string, RulesFunc>) => {
     for (const strandName in logicStands)

@@ -9,7 +9,6 @@ import {
   block,
   selectionStrategies,
   FeedbackMessage,
-  CallbackArgs,
   RulesFunc,
 } from './src/index'
 
@@ -30,8 +29,8 @@ const winConditions = [
 const squares = [0, 1, 2, 3, 4, 5, 6, 7, 8]
 const squaresTaken = squares.reduce((acc: Record<string, RulesFunc>, square) => {
   acc[`(${square}) taken`] = strand(
-    waitFor({callback: ({payload}:CallbackArgs<number>) => square === payload}),
-    block({callback: ({payload}:CallbackArgs<number>) => square === payload}),
+    waitFor({callback: ({payload}) => square === payload}),
+    block({callback: ({payload}) => square === payload}),
   )
 
   return acc
