@@ -1,4 +1,4 @@
-import {ValueOf, Callback} from './types'
+import {ValueOf, Callback, RequestIdiom} from './types'
 import {idioms} from './constants'
 
 
@@ -13,16 +13,4 @@ const idiom = (key: ValueOf<typeof idioms>)  => (...idioms: {
 }
 export const waitFor = idiom('waitFor')
 export const block = idiom('block')
-export const request = (...idioms: {
-  eventName: string
-  payload?: unknown
-}[]):  {
-  request: {
-      eventName: string;
-      payload?: unknown;
-  }[];
-} => {
-  return {
-    request: [...idioms],
-  }
-}
+export const request = idiom('request') as  RequestIdiom

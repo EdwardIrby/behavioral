@@ -9,7 +9,6 @@ import {
   block,
   selectionStrategies,
   FeedbackMessage,
-  CallbackArgs,
   RulesFunc,
 } from './src/index'
 

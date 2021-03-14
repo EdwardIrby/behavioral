@@ -81,3 +81,15 @@ export interface StateChart {
     blockedEvents: (string | undefined)[];
   }
 }
+
+export type RequestIdiom = (...idioms: {
+  eventName: string;
+  payload?: unknown;
+  callback?: Callback;
+}[]) => {
+  [x: string]: {
+      eventName: string;
+      payload?: unknown;
+      callback?: Callback | undefined;
+  }[];
+}
