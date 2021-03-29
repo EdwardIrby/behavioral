@@ -51,9 +51,3 @@ export const track: Track = (strands, {strategy = selectionStrategies.priority, 
   add(strands)
   return Object.freeze({trigger, feedback, stream, add})
 }
-
-export {
-  loop as l,
-  delegate as d,
-  strand as s,
-}
