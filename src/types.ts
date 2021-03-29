@@ -1,5 +1,6 @@
 import {streamEvents, selectionStrategies, baseDynamics} from './constants'
 
+
 export type ValueOf<T> = T[keyof T]
 
 export type FeedbackMessage = {eventName: string, payload?: any}
@@ -52,7 +53,7 @@ export type SelectionStrategies = ValueOf<typeof selectionStrategies> | Strategy
 export interface Track {
   (strand: Record<string, RulesFunc>, options?: {strategy?: SelectionStrategies, debug?: boolean}):  {
     trigger:Trigger
-    feedback: (actions: Record<string, (obj: FeedbackMessage) => void
+    feedback: (actions: Record<string, (payload?: any) => void
     >) => CreatedStream
     stream: CreatedStream;
     add: (logicStands: Record<string, RulesFunc>) => void;
