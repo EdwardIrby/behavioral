@@ -61,14 +61,14 @@ const enforceTurns = loop(
     Object.assign(waitFor({eventName: 'X'}), block({eventName: 'O'})),
     Object.assign(waitFor({eventName: 'O'}), block({eventName: 'X'})),
   ),
-)
+)()
 
 const playerMove = (player: string) =>
   loop(
     strand({
       request: squares.map(move => ({eventName: player, payload: move})),
     }),
-  )
+  )()
 
 const stopGame = strand(
   waitFor({eventName: 'X Wins'},{eventName: 'O Wins'}),
