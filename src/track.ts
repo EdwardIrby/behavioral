@@ -10,12 +10,23 @@ import {
   FeedbackMessage,
 } from './types'
 
-export const loop = (gen: RulesFunc, loopCallback = () => true): RulesFunc =>
-  function* ()  {
-    while (loopCallback()) {
+export const delegate = (...gens: RulesFunc[]): RulesFunc => function* () {
+  for(const gen of gens){
+    yield* gen()
+  }
+}
+
+export const loop = (...gens: RulesFunc[]) => (callback = () => true): RulesFunc => function* ()  {
+  while (callback()) {
+    for(const gen of gens){
       yield* gen()
     }
   }
+}
+
+
+
+ 
 
 export const strand = (...idiomSets: IdiomSet[]): RulesFunc =>
   function* ()  {
@@ -43,4 +54,10 @@ export const track: Track = (strands, {strategy = selectionStrategies.priority, 
   }
   add(strands)
   return Object.freeze({trigger, feedback, stream, add})
+}
+
+export {
+  loop as l,
+  delegate as d,
+  strand as s,
 }
