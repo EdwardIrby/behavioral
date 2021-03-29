@@ -97,31 +97,31 @@ const {trigger: xTrigger, feedback: xFeedback} = track(xStrands, {strategy: sele
 
 const {trigger: oTrigger, feedback: oFeedback} = track(oStrands, {strategy: selectionStrategies.random})
 const xActions = {
-  X(msg:FeedbackMessage){
-    console.log(msg)
+  X(payload: unknown){
+    console.log({eventName: 'X', payload})
     oTrigger({
-      eventName: msg.eventName,
-      payload: msg.payload,
+      eventName: 'X',
+      payload: payload,
       baseDynamic: baseDynamics.objectObject,
     })
   },
-  ['X Wins'](msg:FeedbackMessage){
-    console.log(msg)
+  ['X Wins'](payload: unknown){
+    console.log({eventName: 'X Wins', payload})
   },
 }
 xFeedback(xActions)
 
 const oActions = {
-  O(msg:FeedbackMessage){
-    console.log(msg)
+  O(payload: unknown){
+    console.log({eventName: 'O', payload})
     xTrigger({
-      eventName: msg.eventName,
-      payload: msg.payload,
+      eventName: 'O',
+      payload: payload,
       baseDynamic: baseDynamics.objectObject,
     })
   },
-  ['O Wins'](msg:FeedbackMessage){
-    console.log(msg)
+  ['O Wins'](payload: unknown){
+    console.log({eventName: 'O Wins', payload})
   },
 }
 oFeedback(oActions)
