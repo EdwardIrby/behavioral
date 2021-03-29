@@ -24,10 +24,6 @@ export const loop = (...gens: RulesFunc[]) => (callback = () => true): RulesFunc
   }
 }
 
-
-
- 
-
 export const strand = (...idiomSets: IdiomSet[]): RulesFunc =>
   function* ()  {
     for (const set of idiomSets) {
