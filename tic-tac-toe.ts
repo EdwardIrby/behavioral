@@ -8,7 +8,6 @@ import {
   request,
   block,
   selectionStrategies,
-  FeedbackMessage,
   RulesFunc,
 } from './src/index'
 
