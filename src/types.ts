@@ -45,7 +45,12 @@ export type RunningBid = {
 }
 export type PendingBid = IdiomSet & RunningBid
 
-export type CandidateBid =  RunningBid & FeedbackMessage & Omit<IdiomSet, 'request'>
+export type CandidateBid =  { 
+  priority: number;
+  eventName: string;
+  payload?: any;
+  callback?: Callback;
+}
 
 export type Strategy = ((filteredEvents: CandidateBid[]) => CandidateBid)
 export type SelectionStrategies = ValueOf<typeof selectionStrategies> | Strategy
