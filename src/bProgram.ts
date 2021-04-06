@@ -47,7 +47,10 @@ export const bProgram: BProgram = ({
     })
     const candidates = candidatesList([...pending])
     const blocked = blockedList([...pending])
-    lastEvent = eventSelectionStrategy(candidates, blocked)
+    const filteredBids = candidates.filter(
+      request => !blocked.some(requestInParameter(request)),
+    )
+    lastEvent = eventSelectionStrategy(filteredBids)
     debug && stream(stateChart({candidates, blocked, pending}))
     lastEvent && nextStep()
   }
