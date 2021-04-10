@@ -49,7 +49,7 @@ const strands = {
         block({eventName: 'hot'}),
       ),
     ),
-  )(),
+  ),
 }
 const actions = {
   cold(){
