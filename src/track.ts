@@ -16,11 +16,9 @@ export const delegate = (...gens: RulesFunc[]): RulesFunc => function* () {
   }
 }
 
-export const loop = (...gens: RulesFunc[]) => (callback = () => true): RulesFunc => function* ()  {
+export const loop = (gen: RulesFunc, callback = () => true) => function* ()  {
   while (callback()) {
-    for(const gen of gens){
-      yield* gen()
-    }
+    yield* gen()
   }
 }
 
