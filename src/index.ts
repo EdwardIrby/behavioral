@@ -4,5 +4,5 @@ export {
   baseDynamics,
   streamEvents,
 } from './constants'
-export * from './track'
+export {Track} from './track'
 export * from './rules'
