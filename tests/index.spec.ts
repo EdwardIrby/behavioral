@@ -1,7 +1,6 @@
 import test from 'ava'
 
 import {
-  track,
   baseDynamics,
   selectionStrategies,
   loop,
@@ -9,6 +8,7 @@ import {
   waitFor,
   request,
   block,
+  Track,
 } from '../src'
 const actual: string[] = []
 const expected = [
@@ -62,7 +62,7 @@ const actions = {
 
 test('plait(): priority queue', t => {
   const streamLog: unknown[] = []
-  const {trigger, feedback, stream} = track(strands, {debug: true})
+  const {trigger, feedback, stream} = new Track(strands, {debug: true})
   feedback(actions)
   stream.subscribe(msg => {
     streamLog.push(msg)
@@ -78,7 +78,7 @@ test('plait(): priority queue', t => {
 test('plait(): randomized priority queue', t => {
   const streamLog: unknown[] = []
   actual.length = 0
-  const {trigger, feedback, stream} = track(strands, {strategy: selectionStrategies.random, debug: true})
+  const {trigger, feedback, stream} = new Track(strands, {strategy: selectionStrategies.random, debug: true})
   feedback(actions)
   stream.subscribe(msg => {
     streamLog.push(msg)
@@ -94,7 +94,7 @@ test('plait(): randomized priority queue', t => {
 test('plait(): chaos selection', t => {
   const streamLog: unknown[]  = []
   actual.length = 0
-  const {trigger, feedback, stream} = track(strands, {strategy: selectionStrategies.chaos, debug: true})
+  const {trigger, feedback, stream} = new Track(strands, {strategy: selectionStrategies.chaos, debug: true})
   feedback(actions)
   stream.subscribe(msg => {
     streamLog.push(msg)

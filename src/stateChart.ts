@@ -1,7 +1,7 @@
 import {StateChart} from './types'
 import {streamEvents} from './constants'
 export const stateChart: StateChart = ({candidates, blocked, pending}) => {
-  const strands = [...pending]
+  const strands = pending
     .filter(({strandName}) => strandName)
     .map(({strandName}) => strandName)
   const Blocked = [
