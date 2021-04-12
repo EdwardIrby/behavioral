@@ -1,4 +1,4 @@
-export {CreatedStream, ListenerMessage, FeedbackMessage, RulesFunc, CandidateBid} from './types'
+export {CreatedStream, ListenerMessage, FeedbackMessage, RulesFunc, CandidateBid, Strategy} from './types'
 export {Track} from './track'
 export * from './constants'
 export * from './rules'
