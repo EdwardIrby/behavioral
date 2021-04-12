@@ -7,7 +7,7 @@ import {
   waitFor,
   request,
   block,
-  selectionStrategies,
+  randomizedStrategy,
   RulesFunc,
 } from './src/index'
 
@@ -92,9 +92,9 @@ const oStrands = {
   oMoves: playerMove('O'),
 }
 
-const {trigger: xTrigger, feedback: xFeedback} = new Track(xStrands, {strategy: selectionStrategies.random})
+const {trigger: xTrigger, feedback: xFeedback} = new Track(xStrands, {strategy: randomizedStrategy})
 
-const {trigger: oTrigger, feedback: oFeedback} = new Track(oStrands, {strategy: selectionStrategies.random})
+const {trigger: oTrigger, feedback: oFeedback} = new Track(oStrands, {strategy: randomizedStrategy})
 const xActions = {
   X(payload: unknown){
     console.log({eventName: 'X', payload})

@@ -1,13 +1,13 @@
-import {selectionStrategies, streamEvents, baseDynamics} from './constants'
+import {streamEvents, baseDynamics} from './constants'
 import {stateChart} from './stateChart'
 import {stream} from './stream'
+import {priorityStrategy} from './strategies'
 import {
   ValueOf,
   CandidateBid,
   RunningBid,
   PendingBid,
   Strategy,
-  SelectionStrategies,
   CreatedStream,
   ListenerMessage,
   FeedbackMessage,
@@ -17,21 +17,6 @@ import {
 
 
 export class Track {
-  // Candidate and Blocked lists methods 
-  static candidatesList(pending: PendingBid[]): CandidateBid[] {
-    return pending.reduce<CandidateBid[]>(
-      (acc, {request, priority}) => acc.concat(
-          // Flatten bids' request arrays
-          request ? request.map(
-            event => ({priority, ...event}), // create candidates for each request with current bids priority
-          ) : [],
-      ),
-      [],
-    )
-  }
-  static blockedList(pending: PendingBid[]): RuleParameterValue[] {
-    return pending.flatMap<RuleParameterValue>(({block}) => block || [])
-  }
   // Check if requested event is in the Paramter (waitFor, request, block)
   static requestInParameter({eventName: requestEventName, payload: requestPayload}: CandidateBid) { 
     return({eventName: parameterEventName, callback: parameterCallback}: RuleParameterValue): boolean => (
@@ -40,47 +25,20 @@ export class Track {
       :requestEventName === parameterEventName
     )
   }
-  // Selection Strategies (randomizedPriority: random, chaos priority)
-  static shuffle(array: unknown[]): void{
-    for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1))
-      ;[array[i], array[j]] = [array[j], array[i]]
-    }
-  }
-  static randomizedPriority(filteredEvents: CandidateBid[]): CandidateBid{
-    Track.shuffle(filteredEvents)
-    return filteredEvents.sort(
-      ({priority: priorityA}, {priority: priorityB}) => priorityA - priorityB,
-    )[0]
-  }
-  static chaos(filteredEvents: CandidateBid[]): CandidateBid{
-    const randomArrayElement = (arr: CandidateBid[]) =>
-      arr[Math.floor(Math.random() * Math.floor(arr.length))]
-    return randomArrayElement(filteredEvents)
-  }
-  static priority(filteredEvents: CandidateBid[]): CandidateBid{
-    return filteredEvents.sort(
-      ({priority: priorityA}, {priority: priorityB}) =>
-        priorityA - priorityB,
-    )[0]
-  }
   eventSelectionStrategy:Strategy  
   pending = new Set<PendingBid>()
   running = new Set<RunningBid>()
   lastEvent:CandidateBid = {} as CandidateBid
   stream: CreatedStream
-  debug?: boolean
+  dev?: boolean
   constructor(
     strands:  Record<string, RulesFunc>,
-    {strategy = selectionStrategies.priority, debug = false}:
-    { strategy?: SelectionStrategies; debug?: boolean; } = {},
+    {strategy = priorityStrategy, dev = false}:
+    { strategy?: Strategy; dev?: boolean; } = {},
   ) {
-    this.eventSelectionStrategy =
-    typeof strategy === 'string'
-      ? Track[strategy as ValueOf<typeof selectionStrategies>]
-      : strategy as Strategy
+    this.eventSelectionStrategy = strategy
     this.stream = stream()
-    this.debug = debug
+    this.dev = dev
     this.trigger = this.trigger.bind(this)
     this.feedback = this.feedback.bind(this)
     this.add = this.add.bind(this)
@@ -103,13 +61,21 @@ export class Track {
       this.running.delete(bid)
     }
     const pending = [...this.pending]
-    const candidates = Track.candidatesList(pending)
-    const blocked = Track.blockedList(pending)
+    const candidates = pending.reduce<CandidateBid[]>(
+      (acc, {request, priority}) => acc.concat(
+          // Flatten bids' request arrays
+          request ? request.map(
+            event => ({priority, ...event}), // create candidates for each request with current bids priority
+          ) : [],
+      ),
+      [],
+    )
+    const blocked = pending.flatMap<RuleParameterValue>(({block}) => block || [])
     const filteredBids = candidates.filter(
       request => !blocked.some(Track.requestInParameter(request)),
     )
     this.lastEvent = this.eventSelectionStrategy(filteredBids)
-    this.debug && this.stream(stateChart({candidates, blocked, pending}))
+    this.dev && this.stream(stateChart({candidates, blocked, pending}))
     this.lastEvent && this.nextStep()
   }
   nextStep(): void {
@@ -147,7 +113,7 @@ export class Track {
       priority: 0,
       logicStrand: logicStrand(),
     })
-    this.debug && this.stream({
+    this.dev && this.stream({
       streamEvent: streamEvents.trigger,
       baseDynamic,
       eventName: `Trigger(${eventName})`,

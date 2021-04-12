@@ -1,4 +1,4 @@
-import {streamEvents, selectionStrategies} from './constants'
+import {streamEvents} from './constants'
 
 
 export type ValueOf<T> = T[keyof T]
@@ -7,7 +7,6 @@ export type FeedbackMessage = {eventName: string, payload?: any}
 export type Callback = (args: FeedbackMessage) => boolean;
 export interface RuleParameterValue {
   eventName?: string
-  payload?: any
   callback?: Callback
 }
 
@@ -47,29 +46,16 @@ export type CandidateBid =  {
 }
 
 export type Strategy = ((filteredEvents: CandidateBid[]) => CandidateBid)
-export type SelectionStrategies = ValueOf<typeof selectionStrategies> | Strategy
 
 // stateChart.ts 
 export interface StateChart {
   (props: {candidates: CandidateBid[], blocked: RuleParameterValue[], pending: PendingBid[]}): {
     streamEvent: 'stateSnapshot';
-    logicStrands: string[];
+    logicStrands: {strandName: string, priority: number}[];
     requestedEvents: {
         eventName: string | undefined;
         payload: unknown;
     }[];
     blockedEvents: (string | undefined)[];
   }
-}
-
-export type RequestIdiom = (...idioms: {
-  eventName: string;
-  payload?: unknown;
-  callback?: Callback;
-}[]) => {
-  [x: string]: {
-      eventName: string;
-      payload?: unknown;
-      callback?: Callback | undefined;
-  }[];
 }

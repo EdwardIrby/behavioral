@@ -1,10 +1,8 @@
-import {ValueOf, Callback, RequestIdiom, IdiomSet, RulesFunc} from './types'
-import {idioms} from './constants'
+import {Callback, IdiomSet, RulesFunc} from './types'
 
 
-const idiom = (key: ValueOf<typeof idioms>)  => (...idioms: {
+const idiom = (key:'waitFor' | 'block')  => (...idioms: {
   eventName?: string
-  payload?: unknown
   callback?: Callback
 }[]) => {
   return {
@@ -13,7 +11,15 @@ const idiom = (key: ValueOf<typeof idioms>)  => (...idioms: {
 }
 export const waitFor = idiom('waitFor')
 export const block = idiom('block')
-export const request = idiom('request') as  RequestIdiom
+export const request = (...idioms: {
+  eventName: string;
+  payload?: unknown;
+  callback?: Callback;
+}[]) => {
+  return {
+    request: [...idioms],
+  }
+}
 
 
 export const delegate = (...gens: RulesFunc[]): RulesFunc => function* () {
