@@ -2,28 +2,27 @@
 
 ## Exports
 
-- selectionStrategies: constant 
-- baseDynamics: constant
-- streamEvents:  constant
-- requestInParameter: function used to build custom selection strategy
-- track: function used to init a behavioral program
+- selectionStrategies: callback functions (randomizedStrategy, chaosStrategy, priorityStrategy) 
+- baseDynamics: constants (objectObject, objectPerson, personPerson)
+- streamEvents:  constant (trigger, select, state)
+- Track: Class used to init a behavioral program
 - strand: function used to define a set of behavioral program rule
 - loop: function used to define conditions by which a a strand rule will continue to execute
-- Trigger: Type definition for trigger function returned from **track**
-- CreatedStream: Type definition for trigger function returned from **feedback & log**
-- Add: Type definition for the add function used for adding a new strand to the program after initialization
 
 ## Usage: tic-tac-toe
 
 ```ts
-/* eslint-disable no-console */
 import {
-  track,
+  Track,
   baseDynamics,
   loop,
   strand,
-  selectionStrategies,
-} from './index'
+  waitFor,
+  request,
+  block,
+  randomizedStrategy,
+  RulesFunc,
+} from './src/index'
 
 const winConditions = [
   //rows
@@ -40,57 +39,39 @@ const winConditions = [
 ]
 
 const squares = [0, 1, 2, 3, 4, 5, 6, 7, 8]
-const squaresTaken = squares.reduce((acc: Record<string, unknown>, square) => {
+const squaresTaken = squares.reduce((acc: Record<string, RulesFunc>, square) => {
   acc[`(${square}) taken`] = strand(
-    {
-      waitFor: [{callback: ({payload}) => square === payload}], // [{ eventName: string, callback?: function | undefined, payload?: Transferable | undefined}]
-    },
-    {
-      block: [{callback: ({payload}) => square === payload}],
-    },
+    waitFor({callback: ({payload}) => square === payload}),
+    block({callback: ({payload}) => square === payload}),
   )
 
   return acc
 }, {})
 
 const playerWins = (player: string) =>
-  winConditions.reduce((acc: Record<string, unknown>, win) => {
+  winConditions.reduce((acc: Record<string, RulesFunc>, win) => {
     acc[`${player}Wins (${win})`] = strand(
-      {
-        waitFor: [
-          {
-            callback: ({eventName, payload}) =>
-              eventName === player && win.includes(payload as number),
-          },
-        ],
-      },
-      {
-        waitFor: [
-          {
-            callback: ({eventName, payload}) =>
-              eventName === player && win.includes(payload as number),
-          },
-        ],
-      },
-      {
-        waitFor: [
-          {
-            callback: ({eventName, payload}) =>
-              eventName === player && win.includes(payload as number),
-          },
-        ],
-      },
-      {
-        request: [{eventName: `${player} Wins`, payload: win}],
-      },
+      waitFor({
+        callback: ({eventName, payload}) =>
+          eventName === player && win.includes(payload),
+      }),
+      waitFor({
+        callback: ({eventName, payload}) =>
+          eventName === player && win.includes(payload),
+      }),
+      waitFor({
+        callback: ({eventName, payload}) =>
+          eventName === player && win.includes(payload), 
+      }),
+      request({eventName: `${player} Wins`, payload: win}),
     )
     return acc
   }, {})
 
 const enforceTurns = loop(
   strand(
-    {waitFor: [{eventName: 'X'}], block: [{eventName: 'O'}]},
-    {waitFor: [{eventName: 'O'}], block: [{eventName: 'X'}]},
+    Object.assign(waitFor({eventName: 'X'}), block({eventName: 'O'})),
+    Object.assign(waitFor({eventName: 'O'}), block({eventName: 'X'})),
   ),
 )
 
@@ -102,17 +83,8 @@ const playerMove = (player: string) =>
   )
 
 const stopGame = strand(
-  {
-    waitFor: [
-      {
-        eventName: 'X Wins',
-      },
-      {
-        eventName: 'O Wins',
-      },
-    ],
-  },
-  {block: [{eventName: 'X'}, {eventName: 'O'}]},
+  waitFor({eventName: 'X Wins'},{eventName: 'O Wins'}),
+  block({eventName: 'X'}, {eventName: 'O'}),
 )
 
 const strands = {
@@ -133,39 +105,38 @@ const oStrands = {
   oMoves: playerMove('O'),
 }
 
-const {trigger: xTrigger, feedback: xFeedback} = track(xStrands, {
-  strategy: selectionStrategies.random,
-  track: 'playerX',
-})
+const {trigger: xTrigger, feedback: xFeedback} = new Track(xStrands, {strategy: randomizedStrategy})
 
-const {trigger: oTrigger, feedback: oFeedback} = track(oStrands, {
-  strategy: selectionStrategies.random,
-  track: 'playerO',
-})
-
-xFeedback.subscribe(msg => {
-  if (msg.eventName === 'X') {
-    console.log(msg)
+const {trigger: oTrigger, feedback: oFeedback} = new Track(oStrands, {strategy: randomizedStrategy})
+const xActions = {
+  X(payload: unknown){
+    console.log({eventName: 'X', payload})
     oTrigger({
-      eventName: msg.eventName,
-      payload: msg.payload,
+      eventName: 'X',
+      payload: payload,
       baseDynamic: baseDynamics.objectObject,
     })
-  }
-  if (msg.eventName === 'X Wins') console.log(msg)
-})
+  },
+  ['X Wins'](payload: unknown){
+    console.log({eventName: 'X Wins', payload})
+  },
+}
+xFeedback(xActions)
 
-oFeedback.subscribe(msg => {
-  if (msg.eventName === 'O') {
-    console.log(msg)
+const oActions = {
+  O(payload: unknown){
+    console.log({eventName: 'O', payload})
     xTrigger({
-      eventName: msg.eventName,
-      payload: msg.payload,
+      eventName: 'O',
+      payload: payload,
       baseDynamic: baseDynamics.objectObject,
     })
-  }
-  if (msg.eventName === 'O Wins') console.log(msg)
-})
+  },
+  ['O Wins'](payload: unknown){
+    console.log({eventName: 'O Wins', payload})
+  },
+}
+oFeedback(oActions)
 
 xTrigger({eventName: 'start', baseDynamic: baseDynamics.objectObject})
 ```

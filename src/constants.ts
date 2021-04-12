@@ -8,5 +8,4 @@ export const streamEvents = {
   trigger: 'triggerEvent',
   select: 'selectEvent',
   state: 'stateSnapshot',
-  assert: 'assertEvent',
 } as const
