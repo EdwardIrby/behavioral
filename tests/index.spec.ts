@@ -9,7 +9,7 @@ import {
   waitFor,
   request,
   block,
-  Track,
+  track,
 } from '../src'
 const actual: string[] = []
 const expected = [
@@ -29,41 +29,41 @@ const strands = {
       eventName: 'start',
       callback: () => true,
     }),
-    request({eventName: 'hot'}),
-    request({eventName: 'hot'}),
-    request({eventName: 'hot'}),
+    request({ eventName: 'hot' }),
+    request({ eventName: 'hot' }),
+    request({ eventName: 'hot' }),
   ),
   addCold: strand(
-    waitFor({eventName: 'start'}),
-    request({eventName: 'cold'}),
-    request({eventName: 'cold'}),
-    request({eventName: 'cold'}),
+    waitFor({ eventName: 'start' }),
+    request({ eventName: 'cold' }),
+    request({ eventName: 'cold' }),
+    request({ eventName: 'cold' }),
   ),
   mixHotCold: loop(
     strand(
       Object.assign(
-        waitFor({eventName: 'hot'}),
-        block({eventName: 'cold'}),
+        waitFor({ eventName: 'hot' }),
+        block({ eventName: 'cold' }),
       ),
       Object.assign(
-        waitFor({eventName: 'cold'}),
-        block({eventName: 'hot'}),
+        waitFor({ eventName: 'cold' }),
+        block({ eventName: 'hot' }),
       ),
     ),
   ),
 }
 const actions = {
-  cold(){
+  cold() {
     addCold()
   },
-  hot(){
+  hot() {
     addHot()
   },
 }
 
 test('plait(): priority queue', t => {
   const streamLog: unknown[] = []
-  const {trigger, feedback, stream} = new Track(strands, {dev: true})
+  const { trigger, feedback, stream } = track(strands, { dev: true })
   feedback(actions)
   stream.subscribe(msg => {
     streamLog.push(msg)
@@ -79,7 +79,7 @@ test('plait(): priority queue', t => {
 test('plait(): randomized priority queue', t => {
   const streamLog: unknown[] = []
   actual.length = 0
-  const {trigger, feedback, stream} = new Track(strands, {strategy: randomizedStrategy, dev: true})
+  const { trigger, feedback, stream } = track(strands, { strategy: randomizedStrategy, dev: true })
   feedback(actions)
   stream.subscribe(msg => {
     streamLog.push(msg)
@@ -93,9 +93,9 @@ test('plait(): randomized priority queue', t => {
   t.snapshot(streamLog, 'randomized priority log snapshot')
 })
 test('plait(): chaos selection', t => {
-  const streamLog: unknown[]  = []
+  const streamLog: unknown[] = []
   actual.length = 0
-  const {trigger, feedback, stream} = new Track(strands, {strategy: chaosStrategy, dev: true})
+  const { trigger, feedback, stream } = track(strands, { strategy: chaosStrategy, dev: true })
   feedback(actions)
   stream.subscribe(msg => {
     streamLog.push(msg)
