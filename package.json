@@ -26,9 +26,9 @@
     "lint:fix": "npm run lint -- --fix",
     "prepublish": "npm run build",
     "prepare": "husky install",
-    "start": "snowpack dev",
-    "test": "ava",
-    "test:ci": "c8 --check-coverage --statements 90 --branches 90 --functions 90 --lines 90 --include src/**/*.ts --exclude src/index.ts npm test",
+    "start": "web-dev-server --config web-dev-server.config.mjs --open /examples/index.html --node-resolve --watch",
+    "test": "web-test-runner \"tests/**/*.spec.ts\" --config web-dev-server.config.js --node-resolve",
+    "test:ci": "npm test",
     "test:watch": "npm test -- --watch --verbose"
   },
   "husky": {
@@ -38,17 +38,18 @@
     }
   },
   "types": "dist/index.d.ts",
+  "type": "module",
   "devDependencies": {
     "@commitlint/cli": "^12.1.4",
     "@commitlint/config-conventional": "^12.1.4",
-    "@snowpack/plugin-typescript": "^1.2.1",
+    "@esm-bundle/chai": "^4.3.4",
     "@types/mocha": "^8.2.2",
     "@types/snowpack-env": "^2.3.3",
     "@typescript-eslint/eslint-plugin": "^4.26.0",
     "@typescript-eslint/parser": "^4.26.0",
+    "@web/dev-server": "^0.1.17",
     "@web/dev-server-esbuild": "^0.2.12",
     "@web/test-runner": "^0.13.5",
-    "autoprefixer": "^10.2.6",
     "cz-conventional-changelog": "^3.3.0",
     "esbuild": "0.12.6",
     "eslint": "^7.28.0",
@@ -58,8 +59,7 @@
     "format-package": "^6.1.0",
     "husky": "^6.0.0",
     "ini": ">=2.0.0",
-    "snowpack": "^3.5.5",
-    "ts-node": "^10.0.0",
+    "sinon": "^11.1.1",
     "typescript": "^4.3.2",
     "y18n": ">=5.0.8"
   }

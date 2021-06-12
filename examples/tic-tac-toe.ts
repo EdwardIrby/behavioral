@@ -9,7 +9,7 @@ import {
   block,
   randomizedStrategy,
   RulesFunc,
-} from '../src/index'
+} from '../src/behavioral'
 
 const winConditions = [
   //rows
