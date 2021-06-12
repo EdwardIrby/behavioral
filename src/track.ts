@@ -1,7 +1,7 @@
-import {streamEvents, baseDynamics} from './constants'
-import {stateChart} from './stateChart'
-import {stream} from './stream'
-import {priorityStrategy} from './strategies'
+import { streamEvents, baseDynamics } from './constants'
+import { stateChart } from './stateChart'
+import { stream } from './stream'
+import { priorityStrategy } from './strategies'
 import {
   ValueOf,
   CandidateBid,
@@ -18,23 +18,23 @@ import {
 
 export class Track {
   // Check if requested event is in the Paramter (waitFor, request, block)
-  static requestInParameter({eventName: requestEventName, payload: requestPayload}: CandidateBid) { 
-    return({eventName: parameterEventName, callback: parameterCallback}: RuleParameterValue): boolean => (
-    parameterCallback
-      ? parameterCallback({payload: requestPayload, eventName:requestEventName})
-      :requestEventName === parameterEventName
+  static requestInParameter({ eventName: requestEventName, payload: requestPayload }: CandidateBid) {
+    return ({ eventName: parameterEventName, callback: parameterCallback }: RuleParameterValue): boolean => (
+      parameterCallback
+        ? parameterCallback({ payload: requestPayload, eventName: requestEventName })
+        : requestEventName === parameterEventName
     )
   }
-  eventSelectionStrategy:Strategy  
+  eventSelectionStrategy: Strategy
   pending = new Set<PendingBid>()
   running = new Set<RunningBid>()
-  lastEvent:CandidateBid = {} as CandidateBid
+  lastEvent: CandidateBid = {} as CandidateBid
   stream: CreatedStream
   dev?: boolean
   constructor(
-    strands:  Record<string, RulesFunc>,
-    {strategy = priorityStrategy, dev = false}:
-    { strategy?: Strategy; dev?: boolean; } = {},
+    strands: Record<string, RulesFunc>,
+    { strategy = priorityStrategy, dev = false }:
+      { strategy?: Strategy; dev?: boolean; } = {},
   ) {
     this.eventSelectionStrategy = strategy
     this.stream = stream()
@@ -48,9 +48,9 @@ export class Track {
     this.running.size && this.step()
   }
   step(): void {
-    for( const bid of this.running){
-      const {logicStrand, priority, strandName} = bid
-      const {value, done} = logicStrand.next()
+    for (const bid of this.running) {
+      const { logicStrand, priority, strandName } = bid
+      const { value, done } = logicStrand.next()
       !done &&
         this.pending.add({
           strandName,
@@ -62,32 +62,32 @@ export class Track {
     }
     const pending = [...this.pending]
     const candidates = pending.reduce<CandidateBid[]>(
-      (acc, {request, priority}) => acc.concat(
-          // Flatten bids' request arrays
-          request ? request.map(
-            event => ({priority, ...event}), // create candidates for each request with current bids priority
-          ) : [],
+      (acc, { request, priority }) => acc.concat(
+        // Flatten bids' request arrays
+        request ? request.map(
+          event => ({ priority, ...event }), // create candidates for each request with current bids priority
+        ) : [],
       ),
       [],
     )
-    const blocked = pending.flatMap<RuleParameterValue>(({block}) => block || [])
+    const blocked = pending.flatMap<RuleParameterValue>(({ block }) => block || [])
     const filteredBids = candidates.filter(
       request => !blocked.some(Track.requestInParameter(request)),
     )
     this.lastEvent = this.eventSelectionStrategy(filteredBids)
-    this.dev && this.stream(stateChart({candidates, blocked, pending}))
+    this.dev && this.stream(stateChart({ candidates, blocked, pending }))
     this.lastEvent && this.nextStep()
   }
   nextStep(): void {
-    for( const bid of this.pending){
-      const {request = [], waitFor = [], logicStrand} = bid
+    for (const bid of this.pending) {
+      const { request = [], waitFor = [], logicStrand } = bid
       const waitList = [...request, ...waitFor]
       if (waitList.some(Track.requestInParameter(this.lastEvent)) && logicStrand) {
         this.running.add(bid)
         this.pending.delete(bid)
       }
     }
-    const {eventName, payload} = this.lastEvent
+    const { eventName, payload } = this.lastEvent
     this.stream({
       streamEvent: streamEvents.select,
       eventName,
@@ -101,11 +101,11 @@ export class Track {
     eventName: string;
     payload?: any;
     baseDynamic?: ValueOf<typeof baseDynamics>;
-  }): void{
+  }): void {
     const logicStrand = function* () {
       yield {
-        request: [{eventName, payload}],
-        waitFor: [{eventName: '', callback: () => true}],
+        request: [{ eventName, payload }],
+        waitFor: [{ eventName: '', callback: () => true }],
       }
     }
     this.running.add({
@@ -122,18 +122,21 @@ export class Track {
     this.run()
   }
   feedback(actions: Record<string, (payload?: any) => void>): CreatedStream {
-    return this.stream.subscribe(({streamEvent, ...rest}: ListenerMessage) => {
+    return this.stream.subscribe(({ streamEvent, ...rest }: ListenerMessage) => {
       if (streamEvent !== streamEvents.select) return
-      const {eventName, payload} = rest as FeedbackMessage
+      const { eventName, payload } = rest as FeedbackMessage
       actions[eventName] && actions[eventName](payload)
     })
-  }   
-  add(logicStands: Record<string, RulesFunc>):void{
-    for (const strandName in logicStands)
+  }
+  add(logicStands: Record<string, RulesFunc>): void {
+    for (const strandName in logicStands) {
+      const strand = logicStands[strandName].bind(this)
       this.running.add({
         strandName,
         priority: this.running.size + 1,
-        logicStrand: logicStands[strandName](),
+        logicStrand: strand(),
       })
+    }
+
   }
 }
