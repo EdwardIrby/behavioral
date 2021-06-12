@@ -24,10 +24,9 @@
     "lint": "eslint . --quiet --fix --ext .ts",
     "lint:ci": "eslint .  --ext .ts",
     "lint:fix": "npm run lint -- --fix",
-    "prepublish": "npm run build",
     "prepare": "husky install",
     "start": "web-dev-server --config web-dev-server.config.mjs --open /examples/index.html --node-resolve --watch",
-    "test": "web-test-runner \"tests/**/*.spec.ts\" --config web-dev-server.config.js --node-resolve",
+    "test": "web-test-runner \"src/**/*.spec.(ts|js)\" --config web-dev-server.config.js --node-resolve",
     "test:ci": "npm test",
     "test:watch": "npm test -- --watch --verbose"
   },
@@ -37,6 +36,10 @@
       "pre-commit": "npm run lint && npm run test:ci && format-package -w"
     }
   },
+  "browserslist": [
+    "> 2%",
+    "edge >= 87"
+  ],
   "types": "dist/index.d.ts",
   "type": "module",
   "devDependencies": {
@@ -44,6 +47,7 @@
     "@commitlint/config-conventional": "^12.1.4",
     "@esm-bundle/chai": "^4.3.4",
     "@types/mocha": "^8.2.2",
+    "@types/sinon": "^10.0.2",
     "@types/snowpack-env": "^2.3.3",
     "@typescript-eslint/eslint-plugin": "^4.26.0",
     "@typescript-eslint/parser": "^4.26.0",

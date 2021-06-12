@@ -10,7 +10,7 @@ import {
   request,
   block,
   Track,
-} from '../src/behavioral'
+} from '..'
 
 import {
   expectedFeedback,
